@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>GXBuddy — Smart Financial Companion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  * { box-sizing: border-box; }
+  html, body, #root { margin: 0; padding: 0; min-height: 100vh; }
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, system-ui, sans-serif;
+    background: #050010;
+    color: #fff;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior: none;
+  }
+  /* hide scrollbars on scrollable inner regions */
+  ::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
+  /* Animations */
+  @keyframes mascot-float {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-6px); }
+  }
+  @keyframes mascot-bounce {
+    0%, 100% { transform: translateY(0) scale(1); }
+    25%      { transform: translateY(-10px) scale(1.04); }
+    50%      { transform: translateY(0) scale(1); }
+    75%      { transform: translateY(-6px) scale(1.02); }
+  }
+  @keyframes mascot-shake {
+    0%, 100% { transform: translateX(0) rotate(0); }
+    25%      { transform: translateX(-3px) rotate(-2deg); }
+    75%      { transform: translateX(3px) rotate(2deg); }
+  }
+  @keyframes mascot-tense {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50%      { transform: translateY(-2px) scale(1.015); }
+  }
+  @keyframes mascot-pulse {
+    0%, 100% { opacity: 0.7; transform: scale(1); }
+    50%      { opacity: 1; transform: scale(1.06); }
+  }
+  @keyframes sparkle {
+    0%, 100% { opacity: 0; transform: scale(0.5) rotate(0deg); }
+    50%      { opacity: 1; transform: scale(1.1) rotate(180deg); }
+  }
+  @keyframes fade-pulse {
+    0%   { opacity: 0; }
+    20%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  @keyframes gentle-pulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.04); }
+  }
+  @keyframes urgent-pulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.06); }
+  }
+  @keyframes chip-in {
+    0%   { opacity: 0; transform: translateY(6px) scale(0.94); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes salary-fade-in {
+    0%   { opacity: 0; backdrop-filter: blur(0px); }
+    100% { opacity: 1; backdrop-filter: blur(14px); }
+  }
+  @keyframes salary-bloom {
+    0%   { opacity: 0; transform: translate(-50%,-50%) scale(0.6); }
+    30%  { opacity: 1; }
+    100% { opacity: 0.4; transform: translate(-50%,-50%) scale(1.4); }
+  }
+  @keyframes ray-burst {
+    0%   { opacity: 0; transform: translate(-50%, 0) rotate(var(--r, 0deg)) scaleY(0); }
+    20%  { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, 0) rotate(var(--r, 0deg)) scaleY(1.4) translateY(-30px); }
+  }
+  @keyframes sms-pop {
+    0%   { opacity: 0; transform: translateX(-50%) translateY(-12px) scale(0.92); }
+    100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  }
+  @keyframes amount-pop {
+    0%   { opacity: 0; transform: scale(0.6); filter: blur(8px); }
+    60%  { transform: scale(1.08); filter: blur(0px); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes coin-fly {
+    0%   { opacity: 0; transform: translate(-50%, 0) scale(0.6); }
+    15%  { opacity: 1; }
+    100% { opacity: 0; transform: translate(calc(-50% + var(--tx)), var(--ty)) scale(0.4); }
+  }
+  @keyframes pocket-receive {
+    0%, 50% { transform: scale(1); box-shadow: 0 0 0 0 currentColor; }
+    65% { transform: scale(1.06); }
+    80% { transform: scale(1); }
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes buddy-glow {
+    0%, 100% { box-shadow: 0 10px 28px rgba(139,63,255,0.45), 0 0 0 1px rgba(255,255,255,0.06) inset; }
+    50%      { box-shadow: 0 10px 32px rgba(255,61,126,0.55), 0 0 0 1px rgba(255,255,255,0.1) inset; }
+  }
+  input[type="range"] {
+    height: 4px; -webkit-appearance: none; background: rgba(255,255,255,0.1); border-radius: 99px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 0 3px #771FFF, 0 0 12px rgba(119,31,255,0.6);
+    cursor: pointer;
+  }
+  button:focus, button:focus-visible { outline: none; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="ios-frame.jsx"></script>
+<script type="text/babel" src="components.jsx"></script>
+<script type="text/babel" src="screens.jsx"></script>
+<script type="text/babel" src="modals.jsx"></script>
+<script type="text/babel" src="gxbank-home.jsx"></script>
+<script type="text/babel" src="app.jsx"></script>
+</body>
+</html>
