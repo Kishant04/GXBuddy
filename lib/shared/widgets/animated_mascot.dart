@@ -25,9 +25,12 @@ class _AnimatedMascotState extends State<AnimatedMascot>
   @override
   void initState() {
     super.initState();
-    _bodyCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 3200));
-    _glowCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 2200));
-    _sparkleCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1600));
+    _bodyCtrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 3200));
+    _glowCtrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 2200));
+    _sparkleCtrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 1600));
 
     _bodyAnim = Tween(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _bodyCtrl, curve: Curves.easeInOut),
@@ -96,7 +99,8 @@ class _AnimatedMascotState extends State<AnimatedMascot>
   Offset _bodyOffset(double t) => switch (widget.state) {
         MascotState.calm => Offset(0, -6 * sin(t * pi)),
         MascotState.alert => Offset(0, -3 * sin(t * pi)),
-        MascotState.panicked => Offset(4 * sin(t * 2 * pi), 2 * cos(t * 2 * pi)),
+        MascotState.panicked =>
+          Offset(4 * sin(t * 2 * pi), 2 * cos(t * 2 * pi)),
         MascotState.celebrating => Offset(0, -8 * sin(t * pi)),
       };
 
@@ -145,8 +149,7 @@ class _AnimatedMascotState extends State<AnimatedMascot>
                 ),
               ),
               // Celebrating sparkles
-              if (widget.state == MascotState.celebrating)
-                ..._buildSparkles(s),
+              if (widget.state == MascotState.celebrating) ..._buildSparkles(s),
             ],
           ),
         );
@@ -248,7 +251,8 @@ class _MascotPainter extends CustomPainter {
     // Legs
     final limbPaint = Paint()
       ..shader = const LinearGradient(
-        begin: Alignment.topCenter, end: Alignment.bottomCenter,
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
         colors: [Color(0xFF7E8B95), Color(0xFF3F4750)],
       ).createShader(const Rect.fromLTWH(0, 0, 220, 220));
     final legRadius = const Radius.circular(4);
@@ -263,7 +267,8 @@ class _MascotPainter extends CustomPainter {
     // Side bevel
     final sidePaint = Paint()
       ..shader = const LinearGradient(
-        begin: Alignment.centerLeft, end: Alignment.centerRight,
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
         colors: [Color(0xFF3B156A), Color(0xFF1A063C)],
       ).createShader(const Rect.fromLTWH(170, 50, 20, 140));
     final sidePath = Path()
@@ -277,7 +282,8 @@ class _MascotPainter extends CustomPainter {
     // Main body
     final bodyPaint = Paint()
       ..shader = const LinearGradient(
-        begin: Alignment.topLeft, end: Alignment.bottomRight,
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
         colors: [Color(0xFF5C2A8E), Color(0xFF3B156A), Color(0xFF1F0844)],
         stops: [0.0, 0.55, 1.0],
       ).createShader(const Rect.fromLTWH(50, 38, 122, 154));
@@ -299,7 +305,8 @@ class _MascotPainter extends CustomPainter {
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
-    canvas.drawLine(const Offset(58, 44), const Offset(162, 44), highlightPaint);
+    canvas.drawLine(
+        const Offset(58, 44), const Offset(162, 44), highlightPaint);
 
     // Arms
     _drawArm(canvas, isRight: false);
@@ -342,7 +349,8 @@ class _MascotPainter extends CustomPainter {
     // Screen bezel
     final bezelPaint = Paint()..color = const Color(0xFF0A0A14);
     canvas.drawRRect(
-      RRect.fromRectAndRadius(const Rect.fromLTWH(64, 52, 94, 74), const Radius.circular(10)),
+      RRect.fromRectAndRadius(
+          const Rect.fromLTWH(64, 52, 94, 74), const Radius.circular(10)),
       bezelPaint,
     );
     final bezelBorder = Paint()
@@ -350,7 +358,8 @@ class _MascotPainter extends CustomPainter {
       ..strokeWidth = 1.6
       ..style = PaintingStyle.stroke;
     canvas.drawRRect(
-      RRect.fromRectAndRadius(const Rect.fromLTWH(64, 52, 94, 74), const Radius.circular(10)),
+      RRect.fromRectAndRadius(
+          const Rect.fromLTWH(64, 52, 94, 74), const Radius.circular(10)),
       bezelBorder,
     );
 
@@ -367,7 +376,8 @@ class _MascotPainter extends CustomPainter {
         stops: const [0.0, 0.35, 1.0],
       ).createShader(const Rect.fromLTWH(68, 56, 86, 66));
     canvas.drawRRect(
-      RRect.fromRectAndRadius(const Rect.fromLTWH(68, 56, 86, 66), const Radius.circular(7)),
+      RRect.fromRectAndRadius(
+          const Rect.fromLTWH(68, 56, 86, 66), const Radius.circular(7)),
       screenPaint,
     );
 
@@ -398,11 +408,18 @@ class _MascotPainter extends CustomPainter {
   }
 
   void _drawHappyFace(Canvas canvas, Paint p) {
-    canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(84, 78, 10, 14), const Radius.circular(2)), p);
-    canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(128, 78, 10, 14), const Radius.circular(2)), p);
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(
+            const Rect.fromLTWH(84, 78, 10, 14), const Radius.circular(2)),
+        p);
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(
+            const Rect.fromLTWH(128, 78, 10, 14), const Radius.circular(2)),
+        p);
     // Pupils
     canvas.drawCircle(const Offset(89, 83), 2.4, Paint()..color = Colors.white);
-    canvas.drawCircle(const Offset(133, 83), 2.4, Paint()..color = Colors.white);
+    canvas.drawCircle(
+        const Offset(133, 83), 2.4, Paint()..color = Colors.white);
     // Smile
     final smile = Paint()
       ..color = const Color(0xFF0A2818)
@@ -421,22 +438,36 @@ class _MascotPainter extends CustomPainter {
     canvas.save();
     canvas.translate(87, 75.5);
     canvas.rotate(-12 * pi / 180);
-    canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(-7, -1.5, 14, 3), const Radius.circular(1.5)), browPaint);
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(
+            const Rect.fromLTWH(-7, -1.5, 14, 3), const Radius.circular(1.5)),
+        browPaint);
     canvas.restore();
     canvas.save();
     canvas.translate(135, 75.5);
     canvas.rotate(12 * pi / 180);
-    canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(-7, -1.5, 14, 3), const Radius.circular(1.5)), browPaint);
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(
+            const Rect.fromLTWH(-7, -1.5, 14, 3), const Radius.circular(1.5)),
+        browPaint);
     canvas.restore();
-    canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(84, 80, 10, 14), const Radius.circular(2)), p);
-    canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(128, 80, 10, 14), const Radius.circular(2)), p);
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(
+            const Rect.fromLTWH(84, 80, 10, 14), const Radius.circular(2)),
+        p);
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(
+            const Rect.fromLTWH(128, 80, 10, 14), const Radius.circular(2)),
+        p);
     // Flat concerned mouth
     final mouth = Paint()
       ..color = const Color(0xFF0A2818)
       ..strokeWidth = 3.5
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
-    final mouthPath = Path()..moveTo(95, 108)..quadraticBezierTo(111, 102, 127, 108);
+    final mouthPath = Path()
+      ..moveTo(95, 108)
+      ..quadraticBezierTo(111, 102, 127, 108);
     canvas.drawPath(mouthPath, mouth);
     // Sweat drop
     final sweat = Paint()..color = const Color(0xFF7DD3FC);
@@ -465,7 +496,10 @@ class _MascotPainter extends CustomPainter {
     final textPainter = TextPainter(
       text: const TextSpan(
         text: '!',
-        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFFF8326D)),
+        style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w900,
+            color: Color(0xFFF8326D)),
       ),
       textDirection: TextDirection.ltr,
     )..layout();
@@ -504,12 +538,21 @@ class _MascotPainter extends CustomPainter {
   void _drawControls(Canvas canvas) {
     // D-pad
     final dpadPaint = Paint()..color = const Color(0xFFFFD66B);
-    canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(75, 142, 6, 20), const Radius.circular(1.5)), dpadPaint);
-    canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(68, 149, 20, 6), const Radius.circular(1.5)), dpadPaint);
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(
+            const Rect.fromLTWH(75, 142, 6, 20), const Radius.circular(1.5)),
+        dpadPaint);
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(
+            const Rect.fromLTWH(68, 149, 20, 6), const Radius.circular(1.5)),
+        dpadPaint);
     // A/B buttons
-    canvas.drawCircle(const Offset(118, 152), 5, Paint()..color = const Color(0xFF5BD8FF));
-    canvas.drawCircle(const Offset(135, 160), 5.5, Paint()..color = const Color(0xFFF8326D));
-    canvas.drawCircle(const Offset(142, 146), 3.5, Paint()..color = const Color(0xFF22C796));
+    canvas.drawCircle(
+        const Offset(118, 152), 5, Paint()..color = const Color(0xFF5BD8FF));
+    canvas.drawCircle(
+        const Offset(135, 160), 5.5, Paint()..color = const Color(0xFFF8326D));
+    canvas.drawCircle(
+        const Offset(142, 146), 3.5, Paint()..color = const Color(0xFF22C796));
     // Speaker grille
     final speakerPaint = Paint()
       ..color = const Color(0x8C0A0118)
@@ -517,7 +560,8 @@ class _MascotPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
     for (var i = 0; i < 3; i++) {
-      canvas.drawLine(Offset(155 + i * 3.0, 148), Offset(155 + i * 3.0, 166), speakerPaint);
+      canvas.drawLine(
+          Offset(155 + i * 3.0, 148), Offset(155 + i * 3.0, 166), speakerPaint);
     }
   }
 
@@ -536,9 +580,11 @@ class _MascotPainter extends CustomPainter {
       MascotState.celebrating => const Color(0xFF5BFF8C),
     };
     final glowIntensity = 0.6 + 0.4 * animValue;
-    canvas.drawCircle(const Offset(111, 16), 5, Paint()..color = ballColor.withValues(alpha: glowIntensity));
+    canvas.drawCircle(const Offset(111, 16), 5,
+        Paint()..color = ballColor.withValues(alpha: glowIntensity));
     canvas.drawCircle(
-      const Offset(111, 16), 5,
+      const Offset(111, 16),
+      5,
       Paint()
         ..color = Color.lerp(ballColor, Colors.black, 0.3)!
         ..strokeWidth = 1.5

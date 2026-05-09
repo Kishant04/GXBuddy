@@ -9,10 +9,15 @@ class MascotStatusCard extends StatelessWidget {
     super.key,
     required this.mascotState,
     required this.streakDays,
+    this.moodLine,
   });
 
   final MascotState mascotState;
   final int streakDays;
+
+  /// AI-generated mood line from the API. Falls back to the enum extension
+  /// string when null or empty (e.g. in offline / mock mode).
+  final String? moodLine;
 
   Color get _glowColor => switch (mascotState) {
         MascotState.calm => GXColors.success,
@@ -20,6 +25,10 @@ class MascotStatusCard extends StatelessWidget {
         MascotState.panicked => GXColors.danger,
         MascotState.celebrating => GXColors.celebrationLight,
       };
+
+  String get _resolvedMoodLine => (moodLine != null && moodLine!.isNotEmpty)
+      ? moodLine!
+      : mascotState.moodLine;
 
   @override
   Widget build(BuildContext context) {
@@ -40,19 +49,23 @@ class MascotStatusCard extends StatelessWidget {
                   Text(
                     'GXBuddy · ${mascotState.label}',
                     style: const TextStyle(
-                      fontSize: 11, fontWeight: FontWeight.w700,
-                      color: GXColors.textSoft, letterSpacing: 0.12,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: GXColors.textSoft,
+                      letterSpacing: 0.12,
                     ),
                   ),
                   const SizedBox(height: 4),
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 300),
                     child: Text(
-                      mascotState.moodLine,
-                      key: ValueKey(mascotState.moodLine),
+                      _resolvedMoodLine,
+                      key: ValueKey(_resolvedMoodLine),
                       style: const TextStyle(
-                        fontSize: 14, height: 1.4,
-                        color: GXColors.textWhite, fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                        height: 1.4,
+                        color: GXColors.textWhite,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
@@ -93,7 +106,10 @@ class _Pill extends StatelessWidget {
             Text(icon, style: const TextStyle(fontSize: 11)),
             const SizedBox(width: 4),
             Text(label,
-                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: GXColors.textWhite)),
+                style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: GXColors.textWhite)),
           ],
         ),
       );

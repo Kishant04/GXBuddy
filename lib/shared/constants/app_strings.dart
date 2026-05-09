@@ -1,7 +1,8 @@
 abstract final class AppStrings {
   static const appName = 'GXBuddy';
   static const tagline = 'Your Smart Financial Companion';
-  static const autopilotTagline = 'Set it once. GXBuddy saves before you spend.';
+  static const autopilotTagline =
+      'Set it once. GXBuddy saves before you spend.';
 
   // Home
   static const greetingPrefix = 'Hi';
@@ -31,12 +32,14 @@ abstract final class AppStrings {
   static const sendHoldStrong = 'Send Hold Strong 💪';
   static const inviteFriends = 'Invite Friends';
   static const privacy30day = 'Hit a 30-day streak';
-  static const privacyNote = 'Your friends only see progress %, not your exact balance.';
+  static const privacyNote =
+      'Your friends only see progress %, not your exact balance.';
 
   // Streak shield
   static const streakShieldTitle = 'Streak Shield Activated';
   static const streakShieldSent = 'Hold Strong sent to Kumar 💪';
-  static const softBlockSent = 'Soft block requested. Kumar will be asked to confirm.';
+  static const softBlockSent =
+      'Soft block requested. Kumar will be asked to confirm.';
 
   // High-risk
   static const pauseTitle = 'Pause Before You Spend';
@@ -45,7 +48,8 @@ abstract final class AppStrings {
   static const cancelSmart = 'Cancel — Smart move';
   static const continueAnyway = 'Continue Anyway';
   static const highRiskCancelled = 'Smart move — transaction cancelled.';
-  static const highRiskContinued = "Pushed past your weekly limit. GXBuddy is panicking 😬";
+  static const highRiskContinued =
+      "Pushed past your weekly limit. GXBuddy is panicking 😬";
 
   // Notifications
   static const notificationPreview = 'Notification Previews';

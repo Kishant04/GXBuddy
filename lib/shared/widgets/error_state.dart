@@ -23,7 +23,10 @@ class ErrorState extends StatelessWidget {
               ),
               if (onRetry != null) ...[
                 const SizedBox(height: 16),
-                GXButton(label: 'Try again', onPressed: onRetry, variant: GXButtonVariant.soft),
+                GXButton(
+                    label: 'Try again',
+                    onPressed: onRetry,
+                    variant: GXButtonVariant.soft),
               ],
             ],
           ),

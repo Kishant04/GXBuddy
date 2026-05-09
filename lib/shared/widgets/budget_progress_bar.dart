@@ -45,10 +45,15 @@ class BudgetProgressBar extends StatelessWidget {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(height),
                     gradient: LinearGradient(
-                      colors: [resolvedColor, resolvedColor.withValues(alpha: 0.85)],
+                      colors: [
+                        resolvedColor,
+                        resolvedColor.withValues(alpha: 0.85)
+                      ],
                     ),
                     boxShadow: [
-                      BoxShadow(color: resolvedColor.withValues(alpha: 0.55), blurRadius: 12),
+                      BoxShadow(
+                          color: resolvedColor.withValues(alpha: 0.55),
+                          blurRadius: 12),
                     ],
                   ),
                 ),

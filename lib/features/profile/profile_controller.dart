@@ -6,10 +6,14 @@ class ProfileNotifier extends StateNotifier<UserModel> {
   ProfileNotifier() : super(DemoData.user);
 
   void togglePush() => state = state.copyWith(pushEnabled: !state.pushEnabled);
-  void toggleWhatsapp() => state = state.copyWith(whatsappEnabled: !state.whatsappEnabled);
-  void toggleTelegram() => state = state.copyWith(telegramEnabled: !state.telegramEnabled);
-  void toggleAnonymousSquad() => state = state.copyWith(anonymousSquad: !state.anonymousSquad);
-  void toggleHideBalances() => state = state.copyWith(hideBalances: !state.hideBalances);
+  void toggleWhatsapp() =>
+      state = state.copyWith(whatsappEnabled: !state.whatsappEnabled);
+  void toggleTelegram() =>
+      state = state.copyWith(telegramEnabled: !state.telegramEnabled);
+  void toggleAnonymousSquad() =>
+      state = state.copyWith(anonymousSquad: !state.anonymousSquad);
+  void toggleHideBalances() =>
+      state = state.copyWith(hideBalances: !state.hideBalances);
 }
 
 final profileProvider = StateNotifierProvider<ProfileNotifier, UserModel>(

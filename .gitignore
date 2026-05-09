@@ -45,5 +45,15 @@ android/app/google-services.json
 # Secrets
 *.env
 .env.*
+.env
 google-services.json
 GoogleService-Info.plist
+
+# Backend
+backend/.env
+backend/venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/**/*.pyc
+backend/.pytest_cache/
+backend/**/.pytest_cache/

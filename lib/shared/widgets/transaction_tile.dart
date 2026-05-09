@@ -27,12 +27,20 @@ class TransactionTile extends StatelessWidget {
             decoration: BoxDecoration(
               color: color,
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [BoxShadow(color: color.withValues(alpha: 0.40), blurRadius: 14, offset: const Offset(0, 6))],
+              boxShadow: [
+                BoxShadow(
+                    color: color.withValues(alpha: 0.40),
+                    blurRadius: 14,
+                    offset: const Offset(0, 6))
+              ],
             ),
             child: Center(
               child: Text(
                 tx.glyph,
-                style: const TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.w800),
+                style: const TextStyle(
+                    fontSize: 18,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800),
               ),
             ),
           ),
@@ -48,7 +56,9 @@ class TransactionTile extends StatelessWidget {
                       child: Text(
                         tx.name,
                         style: const TextStyle(
-                          fontSize: 14, fontWeight: FontWeight.w600, color: GXColors.textWhite,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: GXColors.textWhite,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -59,8 +69,10 @@ class TransactionTile extends StatelessWidget {
                           ? '+RM${tx.amount.toStringAsFixed(2)}'
                           : '-RM${tx.amount.toStringAsFixed(2)}',
                       style: TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.w700,
-                        color: tx.isIncome ? GXColors.success : GXColors.textWhite,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color:
+                            tx.isIncome ? GXColors.success : GXColors.textWhite,
                       ),
                     ),
                   ],
@@ -70,19 +82,25 @@ class TransactionTile extends StatelessWidget {
                   children: [
                     Text(
                       '${DateHelpers.relative(tx.timestamp)} · ${tx.category}',
-                      style: const TextStyle(fontSize: 11, color: GXColors.textSoft),
+                      style: const TextStyle(
+                          fontSize: 11, color: GXColors.textSoft),
                     ),
                     const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 2),
                       decoration: BoxDecoration(
                         color: riskColor.withValues(alpha: 0.13),
                         borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: riskColor.withValues(alpha: 0.27)),
+                        border: Border.all(
+                            color: riskColor.withValues(alpha: 0.27)),
                       ),
                       child: Text(
                         tx.riskLabel,
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: riskColor),
+                        style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: riskColor),
                       ),
                     ),
                   ],

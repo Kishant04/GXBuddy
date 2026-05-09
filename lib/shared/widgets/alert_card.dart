@@ -42,19 +42,26 @@ class AlertCard extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: accent.withValues(alpha: 0.40)),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.40), blurRadius: 28, offset: const Offset(0, 10))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.40),
+              blurRadius: 28,
+              offset: const Offset(0, 10))
+        ],
       ),
       padding: const EdgeInsets.all(16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 36, height: 36,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
               color: accent.withValues(alpha: 0.18),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Center(child: Text(_iconText, style: const TextStyle(fontSize: 17))),
+            child: Center(
+                child: Text(_iconText, style: const TextStyle(fontSize: 17))),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -63,12 +70,17 @@ class AlertCard extends StatelessWidget {
               children: [
                 Text(
                   'Pattern Spotted',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: accent, letterSpacing: 0.1),
+                  style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: accent,
+                      letterSpacing: 0.1),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   alert.message,
-                  style: const TextStyle(fontSize: 13.5, color: GXColors.textWhite, height: 1.45),
+                  style: const TextStyle(
+                      fontSize: 13.5, color: GXColors.textWhite, height: 1.45),
                 ),
                 if (alert.actionLabel != null || onDismiss != null) ...[
                   const SizedBox(height: 12),

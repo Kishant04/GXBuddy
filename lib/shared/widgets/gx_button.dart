@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/gx_colors.dart';
 
 enum GXButtonVariant { primary, pink, ghost, danger, success, soft }
+
 enum GXButtonSize { sm, md, lg }
 
 class GXButton extends StatefulWidget {
@@ -28,14 +29,16 @@ class GXButton extends StatefulWidget {
   State<GXButton> createState() => _GXButtonState();
 }
 
-class _GXButtonState extends State<GXButton> with SingleTickerProviderStateMixin {
+class _GXButtonState extends State<GXButton>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl;
   late final Animation<double> _scale;
 
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 100));
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 100));
     _scale = Tween(begin: 1.0, end: 0.96).animate(
       CurvedAnimation(parent: _ctrl, curve: Curves.easeOut),
     );
@@ -54,7 +57,10 @@ class _GXButtonState extends State<GXButton> with SingleTickerProviderStateMixin
 
     return GestureDetector(
       onTapDown: (_) => _ctrl.forward(),
-      onTapUp: (_) { _ctrl.reverse(); widget.onPressed?.call(); },
+      onTapUp: (_) {
+        _ctrl.reverse();
+        widget.onPressed?.call();
+      },
       onTapCancel: () => _ctrl.reverse(),
       child: ScaleTransition(
         scale: _scale,
@@ -78,17 +84,21 @@ class _GXButtonState extends State<GXButton> with SingleTickerProviderStateMixin
               ],
               if (widget.loading)
                 SizedBox(
-                  width: fontSize, height: fontSize,
+                  width: fontSize,
+                  height: fontSize,
                   child: CircularProgressIndicator(
-                    strokeWidth: 2, color: fg,
+                    strokeWidth: 2,
+                    color: fg,
                   ),
                 )
               else
                 Text(
                   widget.label,
                   style: TextStyle(
-                    color: fg, fontSize: fontSize,
-                    fontWeight: FontWeight.w600, letterSpacing: -0.01,
+                    color: fg,
+                    fontSize: fontSize,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.01,
                   ),
                 ),
             ],
@@ -116,7 +126,12 @@ class _GXButtonState extends State<GXButton> with SingleTickerProviderStateMixin
             ),
             GXColors.textWhite,
             Border.all(color: const Color(0x30FFFFFF)),
-            [BoxShadow(color: GXColors.violet.withValues(alpha: 0.40), blurRadius: 26, offset: const Offset(0, 10))],
+            [
+              BoxShadow(
+                  color: GXColors.violet.withValues(alpha: 0.40),
+                  blurRadius: 26,
+                  offset: const Offset(0, 10))
+            ],
           ),
         GXButtonVariant.pink => (
             const LinearGradient(
@@ -126,13 +141,22 @@ class _GXButtonState extends State<GXButton> with SingleTickerProviderStateMixin
             ),
             GXColors.textWhite,
             Border.all(color: const Color(0x30FFFFFF)),
-            [BoxShadow(color: GXColors.pink.withValues(alpha: 0.35), blurRadius: 26, offset: const Offset(0, 10))],
+            [
+              BoxShadow(
+                  color: GXColors.pink.withValues(alpha: 0.35),
+                  blurRadius: 26,
+                  offset: const Offset(0, 10))
+            ],
           ),
         GXButtonVariant.success => (
             null,
             GXColors.success,
             Border.all(color: GXColors.success.withValues(alpha: 0.35)),
-            [BoxShadow(color: GXColors.success.withValues(alpha: 0.20), blurRadius: 18)],
+            [
+              BoxShadow(
+                  color: GXColors.success.withValues(alpha: 0.20),
+                  blurRadius: 18)
+            ],
           ),
         GXButtonVariant.soft => (
             null,
@@ -155,8 +179,20 @@ class _GXButtonState extends State<GXButton> with SingleTickerProviderStateMixin
       };
 
   (EdgeInsets, double, double) _resolveSize() => switch (widget.size) {
-        GXButtonSize.sm => (const EdgeInsets.symmetric(horizontal: 14, vertical: 9), 13, 11),
-        GXButtonSize.md => (const EdgeInsets.symmetric(horizontal: 18, vertical: 14), 14.5, 14),
-        GXButtonSize.lg => (const EdgeInsets.symmetric(horizontal: 22, vertical: 17), 16, 16),
+        GXButtonSize.sm => (
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+            13,
+            11
+          ),
+        GXButtonSize.md => (
+            const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+            14.5,
+            14
+          ),
+        GXButtonSize.lg => (
+            const EdgeInsets.symmetric(horizontal: 22, vertical: 17),
+            16,
+            16
+          ),
       };
 }

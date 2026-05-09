@@ -1,12 +1,163 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../models/autopilot_model.dart';
+import '../../models/autopilot_rule.dart';
 import '../../models/budget.dart';
+import '../../models/dashboard_model.dart';
 import '../../models/mascot.dart';
 import '../../models/pocket.dart';
-import '../../models/transaction.dart';
-import '../../models/autopilot_rule.dart';
+import '../../models/transaction_model.dart';
+import '../../providers/repository_provider.dart';
+import '../../providers/user_id_provider.dart';
 import '../../shared/constants/demo_data.dart';
 
-// ─── App-wide shared state ────────────────────────────────────────────────────
+// ─── Async dashboard state (fed by repository) ────────────────────────────────
+
+/// Thrown when no user ID is available and the app is not in mock mode.
+class NoUserIdException implements Exception {
+  const NoUserIdException();
+  @override
+  String toString() => 'NoUserIdException: no user ID configured';
+}
+
+class HomeDashboardNotifier extends AsyncNotifier<DashboardModel> {
+  @override
+  Future<DashboardModel> build() => _load();
+
+  Future<DashboardModel> _load() async {
+    final userId = ref.read(resolvedUserIdProvider);
+    if (userId == null) throw const NoUserIdException();
+    return ref.read(repositoryProvider).getDashboard(userId: userId);
+  }
+
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(_load);
+  }
+
+  /// Calls createTransaction, refreshes the dashboard, returns the response.
+  /// Returns null on error (caller should show a toast).
+  Future<TransactionResponse?> createTransaction({
+    required double amount,
+    required String merchant,
+    required String category,
+  }) async {
+    final userId = ref.read(resolvedUserIdProvider) ?? 'demo_user';
+    try {
+      final result = await ref.read(repositoryProvider).createTransaction(
+            TransactionCreateRequest(
+              amount: amount,
+              merchant: merchant,
+              category: category,
+              userId: userId,
+            ),
+          );
+      // Refresh so the dashboard reflects the new transaction immediately.
+      ref.invalidateSelf();
+      return result;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Creates a salary transaction then triggers autopilot.
+  /// Returns the split result (or null on failure).
+  Future<AutopilotTriggerResponse?> receiveSalary(
+      {required double salaryAmount}) async {
+    final userId = ref.read(resolvedUserIdProvider) ?? 'demo_user';
+    try {
+      final txResult = await ref.read(repositoryProvider).createTransaction(
+            TransactionCreateRequest(
+              amount: salaryAmount,
+              merchant: 'Salary Credit',
+              category: 'SALARY',
+              userId: userId,
+            ),
+          );
+      final splitResult = await ref.read(repositoryProvider).triggerAutopilot(
+            transactionId: txResult.transaction.id,
+          );
+      ref.invalidateSelf();
+      return splitResult;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<bool> undoAutopilot(String splitId) async {
+    try {
+      final result = await ref.read(repositoryProvider).undoAutopilot(
+            splitId: splitId,
+          );
+      if (result.reversed) ref.invalidateSelf();
+      return result.reversed;
+    } catch (_) {
+      return false;
+    }
+  }
+}
+
+final homeDashboardProvider =
+    AsyncNotifierProvider<HomeDashboardNotifier, DashboardModel>(
+  HomeDashboardNotifier.new,
+);
+
+// ─── Local UI-only state (not from API) ──────────────────────────────────────
+
+class HomeUiState {
+  const HomeUiState({
+    this.alertsDismissed = false,
+    this.pendingAction = false,
+    this.lastSplitResult,
+  });
+
+  final bool alertsDismissed;
+  final bool pendingAction;
+  final AutopilotTriggerResponse? lastSplitResult;
+
+  HomeUiState copyWith({
+    bool? alertsDismissed,
+    bool? pendingAction,
+    AutopilotTriggerResponse? lastSplitResult,
+    bool clearSplit = false,
+  }) =>
+      HomeUiState(
+        alertsDismissed: alertsDismissed ?? this.alertsDismissed,
+        pendingAction: pendingAction ?? this.pendingAction,
+        lastSplitResult:
+            clearSplit ? null : (lastSplitResult ?? this.lastSplitResult),
+      );
+}
+
+class HomeUiNotifier extends StateNotifier<HomeUiState> {
+  HomeUiNotifier() : super(const HomeUiState());
+
+  void dismissAlert() => state = state.copyWith(alertsDismissed: true);
+  void setPending(bool v) => state = state.copyWith(pendingAction: v);
+  void setSplitResult(AutopilotTriggerResponse r) =>
+      state = state.copyWith(lastSplitResult: r);
+  void clearSplitResult() => state = state.copyWith(clearSplit: true);
+}
+
+final homeUiProvider = StateNotifierProvider<HomeUiNotifier, HomeUiState>(
+  (_) => HomeUiNotifier(),
+);
+
+// ─── Shared name provider ─────────────────────────────────────────────────────
+
+final userNameProvider = FutureProvider<String>((ref) async {
+  final userId = ref.watch(resolvedUserIdProvider);
+  if (userId == null) return '';
+  try {
+    final user = await ref.read(repositoryProvider).getUser();
+    return user.name;
+  } catch (_) {
+    return '';
+  }
+});
+
+// ─── Backward-compat AppState (kept for pockets / squad screens) ──────────────
+// These screens have not yet been wired to the repository. They still use
+// DemoData via this provider. Will be removed when pockets is integrated.
 
 class AppState {
   const AppState({
@@ -59,119 +210,58 @@ class AppStateNotifier extends StateNotifier<AppState> {
           alertsDismissed: false,
         ));
 
-  MascotState _deriveMascotState(WeeklyBudget b) {
-    final pct = b.overallPercent;
-    if (pct >= 1.0) return MascotState.panicked;
-    if (pct >= 0.6) return MascotState.alert;
-    return MascotState.calm;
-  }
-
-  void spendFood(double amount) {
-    final food = state.budget.category('food')!;
-    final updated = food.copyWith(spent: food.spent + amount);
-    final newBudget = _replaceCategory(state.budget, updated);
-    final newTx = TransactionModel(
-      id: 'tx_${DateTime.now().millisecondsSinceEpoch}',
-      name: 'GrabFood',
-      amount: amount,
-      category: 'Food',
-      riskLabel: 'Risky',
-      timestamp: DateTime.now(),
-      glyph: '🍔',
-      colorHex: '#10B981',
-    );
-    state = state.copyWith(
-      budget: newBudget,
-      transactions: [newTx, ...state.transactions],
-      mascotState: _deriveMascotState(newBudget),
-    );
-  }
-
-  void spendShopping(double amount) {
-    final shopping = state.budget.category('shopping')!;
-    final updated = shopping.copyWith(spent: shopping.spent + amount);
-    final newBudget = _replaceCategory(state.budget, updated);
-    final newTx = TransactionModel(
-      id: 'tx_${DateTime.now().millisecondsSinceEpoch}',
-      name: 'Shopee',
-      amount: amount,
-      category: 'Shopping',
-      riskLabel: 'Risky',
-      timestamp: DateTime.now(),
-      glyph: 'S',
-      colorHex: '#F8326D',
-    );
-    state = state.copyWith(
-      budget: newBudget,
-      transactions: [newTx, ...state.transactions],
-      mascotState: MascotState.panicked,
-    );
-  }
-
   void addToPocket(String pocketName, double amount) {
     final pockets = state.pockets.map((p) {
       if (p.name == pocketName) return p.copyWith(balance: p.balance + amount);
       return p;
     }).toList();
-    state = state.copyWith(pockets: pockets, mascotState: MascotState.celebrating);
+    state =
+        state.copyWith(pockets: pockets, mascotState: MascotState.celebrating);
   }
 
-  void receiveSalary() {
-    final salaryTx = TransactionModel(
-      id: 'tx_${DateTime.now().millisecondsSinceEpoch}',
-      name: 'Salary Credit',
-      amount: DemoData.salaryAmount,
-      category: 'Income',
-      riskLabel: 'Income',
-      timestamp: DateTime.now(),
-      glyph: '💸',
-      colorHex: '#7C3AED',
-      isIncome: true,
-    );
-    final newPockets = state.pockets.map((p) {
-      return switch (p.name) {
-        'Emergency Fund' => p.copyWith(balance: p.balance + 240),
-        'PTPTN' => p.copyWith(balance: p.balance + 120),
-        'Travel' => p.copyWith(balance: p.balance + 60),
-        _ => p,
-      };
-    }).toList();
-    state = state.copyWith(
-      pockets: newPockets,
-      transactions: [salaryTx, ...state.transactions],
-      mascotState: MascotState.celebrating,
-      autopilot: state.autopilot.copyWith(lastSplitAmount: DemoData.totalSalarySplit),
-    );
-  }
-
-  void undoSalarySplit() {
-    final revertedPockets = state.pockets.map((p) {
-      return switch (p.name) {
-        'Emergency Fund' => p.copyWith(balance: (p.balance - 240).clamp(0, double.infinity)),
-        'PTPTN' => p.copyWith(balance: (p.balance - 120).clamp(0, double.infinity)),
-        'Travel' => p.copyWith(balance: (p.balance - 60).clamp(0, double.infinity)),
-        _ => p,
-      };
-    }).toList();
-    state = state.copyWith(pockets: revertedPockets);
-  }
-
-  void setCelebrating() => state = state.copyWith(mascotState: MascotState.celebrating);
+  void setCelebrating() =>
+      state = state.copyWith(mascotState: MascotState.celebrating);
   void setCalm() => state = state.copyWith(mascotState: MascotState.calm);
 
   void dismissAlert() => state = state.copyWith(alertsDismissed: true);
 
-  void updateAutopilot(AutopilotRule rule) => state = state.copyWith(autopilot: rule);
+  void updateAutopilot(AutopilotRule rule) =>
+      state = state.copyWith(autopilot: rule);
 
-  WeeklyBudget _replaceCategory(WeeklyBudget budget, CategoryBudget updated) {
-    final cats = budget.categories.map((c) {
-      return c.category == updated.category ? updated : c;
+  // Used by pockets screen for the salary animation undo path.
+  void undoSalarySplit() {
+    final reverted = state.pockets.map((p) {
+      return switch (p.name) {
+        'Emergency Fund' =>
+          p.copyWith(balance: (p.balance - 240).clamp(0, double.infinity)),
+        'PTPTN' =>
+          p.copyWith(balance: (p.balance - 120).clamp(0, double.infinity)),
+        'Travel' =>
+          p.copyWith(balance: (p.balance - 60).clamp(0, double.infinity)),
+        _ => p,
+      };
     }).toList();
-    final newTotal = cats.fold(0.0, (s, c) => s + c.spent);
-    return budget.copyWith(totalSpent: newTotal, categories: cats);
+    state = state.copyWith(pockets: reverted);
   }
 }
 
 final appStateProvider = StateNotifierProvider<AppStateNotifier, AppState>(
   (_) => AppStateNotifier(),
 );
+
+// ─── Dashboard → WeeklyBudget conversion ──────────────────────────────────────
+
+/// Converts the flat API dashboard response into the WeeklyBudget display model
+/// used by WeeklyBudgetCard. Category limits are set to 0 when not provided by
+/// the API (the budget screen will show per-category limits via getBudgets).
+WeeklyBudget dashboardToWeeklyBudget(DashboardModel d) => WeeklyBudget(
+      totalSpent: d.weeklySpendTotal,
+      totalBudget: d.weeklyBudgetLimit,
+      categories: d.categoryBreakdown
+          .map((c) => CategoryBudget(
+                category: c.category,
+                spent: c.amount,
+                limit: 0, // limit unknown from dashboard; 0 = "no limit set"
+              ))
+          .toList(),
+    );

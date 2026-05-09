@@ -35,7 +35,8 @@ class WeeklyBudgetCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text('Weekly spend',
-                        style: TextStyle(fontSize: 12, color: GXColors.textSoft)),
+                        style:
+                            TextStyle(fontSize: 12, color: GXColors.textSoft)),
                     const SizedBox(height: 4),
                     RichText(
                       text: TextSpan(
@@ -43,63 +44,84 @@ class WeeklyBudgetCard extends StatelessWidget {
                           TextSpan(
                             text: 'RM${budget.totalSpent.toStringAsFixed(2)}',
                             style: const TextStyle(
-                              fontSize: 26, fontWeight: FontWeight.w800,
-                              color: GXColors.textWhite, letterSpacing: -0.03,
+                              fontSize: 26,
+                              fontWeight: FontWeight.w800,
+                              color: GXColors.textWhite,
+                              letterSpacing: -0.03,
                             ),
                           ),
-                          TextSpan(
-                            text: ' / RM${budget.totalBudget.toStringAsFixed(0)}',
-                            style: const TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.w500,
-                              color: GXColors.textSoft,
+                          if (budget.totalBudget > 0)
+                            TextSpan(
+                              text:
+                                  ' / RM${budget.totalBudget.toStringAsFixed(0)}',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: GXColors.textSoft,
+                              ),
                             ),
-                          ),
                         ],
                       ),
                     ),
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: pctColor.withValues(alpha: 0.18),
-                  borderRadius: BorderRadius.circular(99),
-                  border: Border.all(color: pctColor.withValues(alpha: 0.35)),
-                ),
-                child: Text(
-                  '${budget.overallPercentInt}% used',
-                  style: TextStyle(
-                    fontSize: 12, fontWeight: FontWeight.w700,
-                    color: pctColor == GXColors.success ? const Color(0xFFFFB95C) : pctColor,
+              if (budget.totalBudget > 0)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: pctColor.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(99),
+                    border: Border.all(color: pctColor.withValues(alpha: 0.35)),
+                  ),
+                  child: Text(
+                    '${budget.overallPercentInt}% used',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: pctColor == GXColors.success
+                          ? const Color(0xFFFFB95C)
+                          : pctColor,
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
-          const SizedBox(height: 14),
-          BudgetProgressBar(value: budget.totalSpent, max: budget.totalBudget, height: 10),
-          const SizedBox(height: 6),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Text('0%', style: TextStyle(fontSize: 10.5, color: GXColors.textMute)),
-              Text('60% calm', style: TextStyle(fontSize: 10.5, color: GXColors.textMute)),
-              Text('80% alert', style: TextStyle(fontSize: 10.5, color: GXColors.textMute)),
-              Text('100%', style: TextStyle(fontSize: 10.5, color: GXColors.textMute)),
-            ],
-          ),
-          Divider(height: 32, color: GXColors.border),
-          ...budget.categories.map((cat) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _CategoryRow(
-                  icon: _icons[cat.category] ?? '💳',
-                  tint: _colors[cat.category] ?? GXColors.violet,
-                  name: cat.category[0].toUpperCase() + cat.category.substring(1),
-                  spent: cat.spent,
-                  limit: cat.limit,
-                ),
-              )),
+          if (budget.totalBudget > 0) ...[
+            const SizedBox(height: 14),
+            BudgetProgressBar(
+                value: budget.totalSpent, max: budget.totalBudget, height: 10),
+            const SizedBox(height: 6),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: const [
+                Text('0%',
+                    style: TextStyle(fontSize: 10.5, color: GXColors.textMute)),
+                Text('60% calm',
+                    style: TextStyle(fontSize: 10.5, color: GXColors.textMute)),
+                Text('80% alert',
+                    style: TextStyle(fontSize: 10.5, color: GXColors.textMute)),
+                Text('100%',
+                    style: TextStyle(fontSize: 10.5, color: GXColors.textMute)),
+              ],
+            ),
+          ],
+          if (budget.categories.isNotEmpty) ...[
+            Divider(height: 32, color: GXColors.border),
+            ...budget.categories.map((cat) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _CategoryRow(
+                    icon: _icons[cat.category.toLowerCase()] ?? '💳',
+                    tint:
+                        _colors[cat.category.toLowerCase()] ?? GXColors.violet,
+                    name: cat.category[0].toUpperCase() +
+                        cat.category.substring(1),
+                    spent: cat.spent,
+                    limit: cat.limit,
+                  ),
+                )),
+          ],
         ],
       ),
     );
@@ -123,47 +145,68 @@ class _CategoryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pct = limit > 0 ? (spent / limit).clamp(0.0, 1.5) : 0.0;
+    final hasLimit = limit > 0;
+    final pct = hasLimit ? (spent / limit).clamp(0.0, 1.5) : 0.0;
     final pctInt = (pct * 100).round().clamp(0, 999);
-    final color = RiskHelpers.budgetPercentColor(pct.clamp(0.0, 1.0));
+    final color = hasLimit
+        ? RiskHelpers.budgetPercentColor(pct.clamp(0.0, 1.0))
+        : GXColors.textSoft;
 
     return Column(
       children: [
         Row(
           children: [
             Container(
-              width: 28, height: 28,
+              width: 28,
+              height: 28,
               decoration: BoxDecoration(
                 color: tint.withValues(alpha: 0.13),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: tint.withValues(alpha: 0.27)),
               ),
-              child: Center(child: Text(icon, style: const TextStyle(fontSize: 14))),
+              child: Center(
+                  child: Text(icon, style: const TextStyle(fontSize: 14))),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(name,
-                  style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: GXColors.textWhite)),
+                  style: const TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      color: GXColors.textWhite)),
             ),
             Text(
-              'RM${spent.toStringAsFixed(0)} ',
+              'RM${spent.toStringAsFixed(0)}',
               style: const TextStyle(fontSize: 12, color: GXColors.textSoft),
             ),
-            Text('/ ${limit.toStringAsFixed(0)}',
-                style: const TextStyle(fontSize: 12, color: GXColors.textMute)),
-            const SizedBox(width: 8),
-            SizedBox(
-              width: 36,
-              child: Text(
-                '$pctInt%',
-                textAlign: TextAlign.right,
-                style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: color),
+            if (hasLimit) ...[
+              Text(' / ${limit.toStringAsFixed(0)}',
+                  style:
+                      const TextStyle(fontSize: 12, color: GXColors.textMute)),
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 36,
+                child: Text(
+                  '$pctInt%',
+                  textAlign: TextAlign.right,
+                  style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: color),
+                ),
               ),
-            ),
+            ],
           ],
         ),
-        const SizedBox(height: 6),
-        BudgetProgressBar(value: spent, max: limit, height: 5, showThresholds: false, color: color),
+        if (hasLimit) ...[
+          const SizedBox(height: 6),
+          BudgetProgressBar(
+              value: spent,
+              max: limit,
+              height: 5,
+              showThresholds: false,
+              color: color),
+        ],
       ],
     );
   }

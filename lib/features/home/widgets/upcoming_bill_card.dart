@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../../models/bill_reminder.dart';
+import '../../../models/bill_model.dart';
 import '../../../core/theme/gx_colors.dart';
 import '../../../shared/widgets/gx_card.dart';
 
 class UpcomingBillCard extends StatelessWidget {
   const UpcomingBillCard({super.key, required this.bill});
 
-  final BillReminder bill;
+  final BillModel bill;
 
   @override
   Widget build(BuildContext context) => GXCard(
@@ -14,7 +14,8 @@ class UpcomingBillCard extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 40, height: 40,
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   begin: Alignment.topLeft,
@@ -23,7 +24,8 @@ class UpcomingBillCard extends StatelessWidget {
                 ),
                 borderRadius: BorderRadius.circular(11),
               ),
-              child: Center(child: Text(bill.icon, style: const TextStyle(fontSize: 18))),
+              child: Center(
+                  child: Text(bill.icon, style: const TextStyle(fontSize: 18))),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -31,14 +33,19 @@ class UpcomingBillCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${bill.name} RM${bill.amount.toStringAsFixed(0)}',
+                    '${bill.name}  RM${bill.amount.toStringAsFixed(0)}',
                     style: const TextStyle(
-                      fontSize: 13.5, fontWeight: FontWeight.w600, color: GXColors.textWhite,
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                      color: GXColors.textWhite,
                     ),
                   ),
                   Text(
-                    'Due in ${bill.dueInDays} days · auto-paid from main',
-                    style: const TextStyle(fontSize: 11.5, color: GXColors.textSoft),
+                    bill.daysRemaining <= 0
+                        ? 'Due today · auto-paid from main'
+                        : 'Due in ${bill.daysRemaining} day${bill.daysRemaining == 1 ? '' : 's'} · auto-paid from main',
+                    style: const TextStyle(
+                        fontSize: 11.5, color: GXColors.textSoft),
                   ),
                 ],
               ),

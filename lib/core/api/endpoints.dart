@@ -1,33 +1,72 @@
-// All API endpoint paths. No logic — strings only.
+/// All API path constants. No logic — strings only.
+///
+/// Naming rule: path segments map to field names.
+/// Query parameters are NOT included here — callers add them.
 abstract final class Endpoints {
-  // Auth
-  static const String login = '/auth/login';
-  static const String logout = '/auth/logout';
-  static const String refreshToken = '/auth/refresh';
+  // ── Auth ──────────────────────────────────────────────────
+  static const String authHealth = '/api/auth/health';
 
-  // Dashboard
+  /// Returns {user: {id, email}} for the authenticated user.
+  static const String authMe = '/api/auth/me';
+
+  // ── Dashboard ─────────────────────────────────────────────
+  /// GET ?user_id=
   static const String dashboard = '/api/dashboard';
 
-  // Transactions
+  // ── Transactions ──────────────────────────────────────────
+  /// GET ?user_id=&limit=   POST (Bearer)
   static const String transactions = '/api/transactions';
 
-  // Budgets
-  static const String budgets = '/api/budgets';
+  // ── Budgets ───────────────────────────────────────────────
+  /// Note: backend router prefix is /budgets — no /api/ prefix.
+  /// GET ?user_id=   POST
+  static const String budgets = '/budgets';
 
-  // Pockets
+  // ── Bills ─────────────────────────────────────────────────
+  /// Note: backend router prefix is /bills — no /api/ prefix.
+  /// GET ?user_id=&days_ahead=
+  static const String bills = '/bills';
+
+  // ── Pockets ───────────────────────────────────────────────
+  /// GET / POST (Bearer)
   static const String pockets = '/api/pockets';
 
-  // Autopilot
+  /// PATCH / DELETE (Bearer)
+  static String pocket(String id) => '/api/pockets/$id';
+
+  // ── Autopilot ─────────────────────────────────────────────
+  static const String autopilotHealth = '/api/autopilot/health';
+
+  /// POST (Bearer) — body: {transaction_id}
   static const String autopilotTrigger = '/api/autopilot/trigger';
+
+  /// POST (Bearer) — body: {split_id}
   static const String autopilotUndo = '/api/autopilot/undo';
 
-  // Squad
+  /// GET (Bearer) — returns {message}
+  static const String autopilotUndoContext = '/api/autopilot/undo-context';
+
+  // ── Squad ─────────────────────────────────────────────────
+  /// POST (Bearer) — create squad
+  static const String squadCreate = '/api/squad';
+
+  /// POST (Bearer) — body: {invite_code}
+  static const String squadJoin = '/api/squad/join';
+
+  /// GET (Bearer)
   static String squad(String id) => '/api/squad/$id';
+
+  /// POST (Bearer) — body: {target_member_index}
   static String squadRally(String id) => '/api/squad/$id/rally';
 
-  // Profile
-  static const String profile = '/api/profile';
-
-  // WebSocket
+  // ── WebSocket ─────────────────────────────────────────────
+  /// Used as a path reference. Full URL is built from AppConfig.wsUrl.
+  /// Connection: ws://host/ws?token={jwt}
   static const String ws = '/ws';
+
+  // ── Legacy aliases (kept for backward compat) ─────────────
+
+  /// Alias for [authMe]. GET /api/auth/me
+  // ignore: non_constant_identifier_names
+  static const String profile = authMe;
 }

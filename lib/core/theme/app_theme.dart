@@ -26,7 +26,8 @@ abstract final class AppTheme {
             statusBarIconBrightness: Brightness.light,
           ),
           titleTextStyle: TextStyle(
-            color: GXColors.textWhite, fontSize: 17,
+            color: GXColors.textWhite,
+            fontSize: 17,
             fontWeight: FontWeight.w700,
           ),
           iconTheme: IconThemeData(color: GXColors.textWhite),

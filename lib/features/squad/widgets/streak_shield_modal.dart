@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/gx_colors.dart';
+import '../../../models/squad_model.dart';
 import '../../../shared/widgets/gx_button.dart';
 
 class StreakShieldModal extends StatefulWidget {
@@ -8,11 +9,16 @@ class StreakShieldModal extends StatefulWidget {
     required this.onSend,
     required this.onSoftBlock,
     required this.onIgnore,
+    this.targetMember,
   });
 
   final VoidCallback onSend;
   final VoidCallback onSoftBlock;
   final VoidCallback onIgnore;
+
+  /// The member who triggered the streak shield. When null a generic message
+  /// is shown (e.g. when triggered by a WebSocket event with no member data).
+  final SquadMember? targetMember;
 
   @override
   State<StreakShieldModal> createState() => _StreakShieldModalState();
@@ -26,7 +32,8 @@ class _StreakShieldModalState extends State<StreakShieldModal>
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 480));
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 480));
     _slide = Tween(begin: const Offset(0, 1), end: Offset.zero).animate(
       CurvedAnimation(parent: _ctrl, curve: const Cubic(0.16, 0.84, 0.32, 1)),
     );
@@ -34,7 +41,15 @@ class _StreakShieldModalState extends State<StreakShieldModal>
   }
 
   @override
-  void dispose() { _ctrl.dispose(); super.dispose(); }
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  SquadMember? get _member => widget.targetMember;
+  String get _memberName => _member?.displayName ?? 'a teammate';
+  String get _initials => _member?.initials ?? '?';
+  Color get _memberColor => _member?.color ?? GXColors.pink;
 
   @override
   Widget build(BuildContext context) => GestureDetector(
@@ -50,55 +65,87 @@ class _StreakShieldModalState extends State<StreakShieldModal>
                 child: Container(
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      begin: Alignment.topCenter, end: Alignment.bottomCenter,
-                      colors: [Color(0xFF1F0A4D), Color(0xFF0E0228), Color(0xFF08001A)],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Color(0xFF1F0A4D),
+                        Color(0xFF0E0228),
+                        Color(0xFF08001A)
+                      ],
                       stops: [0.0, 0.75, 1.0],
                     ),
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-                    border: Border.all(color: GXColors.violet.withValues(alpha: 0.53)),
-                    boxShadow: const [BoxShadow(color: Color(0xB3000000), blurRadius: 80, offset: Offset(0, -30))],
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(32)),
+                    border: Border.all(
+                        color: GXColors.violet.withValues(alpha: 0.53)),
+                    boxShadow: const [
+                      BoxShadow(
+                          color: Color(0xB3000000),
+                          blurRadius: 80,
+                          offset: Offset(0, -30))
+                    ],
                   ),
-                  padding: EdgeInsets.fromLTRB(20, 18, 20, MediaQuery.of(context).padding.bottom + 32),
+                  padding: EdgeInsets.fromLTRB(
+                      20, 18, 20, MediaQuery.of(context).padding.bottom + 32),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Handle
                       Container(
-                        width: 40, height: 4,
-                        decoration: BoxDecoration(color: const Color(0x30FFFFFF), borderRadius: BorderRadius.circular(99)),
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                            color: const Color(0x30FFFFFF),
+                            borderRadius: BorderRadius.circular(99)),
                       ),
                       const SizedBox(height: 18),
-                      // Shield icon
                       Container(
-                        width: 84, height: 84,
+                        width: 84,
+                        height: 84,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          gradient: const LinearGradient(colors: [GXColors.violet, GXColors.pink]),
-                          boxShadow: [BoxShadow(color: GXColors.violet.withValues(alpha: 0.55), blurRadius: 36)],
+                          gradient: const LinearGradient(
+                              colors: [GXColors.violet, GXColors.pink]),
+                          boxShadow: [
+                            BoxShadow(
+                                color: GXColors.violet.withValues(alpha: 0.55),
+                                blurRadius: 36)
+                          ],
                         ),
-                        child: const Center(child: Text('🛡️', style: TextStyle(fontSize: 42))),
+                        child: const Center(
+                            child: Text('🛡️', style: TextStyle(fontSize: 42))),
                       ),
                       const SizedBox(height: 14),
                       const Text(
                         '· STREAK SHIELD TRIGGERED ·',
-                        style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800, color: Color(0xFFD6BFFF), letterSpacing: 0.18),
+                        style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFFD6BFFF),
+                            letterSpacing: 0.18),
                       ),
                       const SizedBox(height: 6),
-                      const Text(
-                        'Kumar needs backup',
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: GXColors.textWhite, letterSpacing: -0.03),
+                      Text(
+                        '$_memberName needs backup',
+                        style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: GXColors.textWhite,
+                            letterSpacing: -0.03),
                       ),
                       const SizedBox(height: 8),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: Text(
-                          "He's one purchase away from breaking the squad's 30-day streak. Rally for him?",
+                          "They're one purchase away from breaking the squad's streak. Rally for them?",
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 13, color: GXColors.textSoft, height: 1.5),
+                          style: const TextStyle(
+                              fontSize: 13,
+                              color: GXColors.textSoft,
+                              height: 1.5),
                         ),
                       ),
                       const SizedBox(height: 16),
-                      // Kumar card
+                      // Member card
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -109,34 +156,68 @@ class _StreakShieldModalState extends State<StreakShieldModal>
                         child: Row(
                           children: [
                             Container(
-                              width: 38, height: 38,
+                              width: 38,
+                              height: 38,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                gradient: const LinearGradient(colors: [GXColors.pink, GXColors.pinkDeep]),
-                                boxShadow: [BoxShadow(color: GXColors.pink.withValues(alpha: 0.33), blurRadius: 12)],
+                                gradient: LinearGradient(colors: [
+                                  _memberColor,
+                                  _memberColor.withValues(alpha: 0.7)
+                                ]),
+                                boxShadow: [
+                                  BoxShadow(
+                                      color:
+                                          _memberColor.withValues(alpha: 0.33),
+                                      blurRadius: 12)
+                                ],
                               ),
-                              child: const Center(
-                                child: Text('K', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: GXColors.textWhite)),
+                              child: Center(
+                                child: Text(_initials,
+                                    style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w800,
+                                        color: GXColors.textWhite)),
                               ),
                             ),
                             const SizedBox(width: 10),
-                            const Expanded(
+                            Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('Kumar · 51% to goal', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: GXColors.textWhite)),
-                                  Text('🔥 5-day streak · attempting RM85 purchase', style: TextStyle(fontSize: 11, color: GXColors.textSoft)),
+                                  Text(
+                                    _member != null
+                                        ? '$_memberName · ${_member!.progressPercent.toInt()}% to goal'
+                                        : _memberName,
+                                    style: const TextStyle(
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: GXColors.textWhite),
+                                  ),
+                                  if (_member != null)
+                                    Text(
+                                      '🔥 ${_member!.streakDays}-day streak',
+                                      style: const TextStyle(
+                                          fontSize: 11,
+                                          color: GXColors.textSoft),
+                                    ),
                                 ],
                               ),
                             ),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 9, vertical: 4),
                               decoration: BoxDecoration(
                                 color: const Color(0x2DEF4444),
                                 borderRadius: BorderRadius.circular(99),
-                                border: Border.all(color: const Color(0x66EF4444)),
+                                border:
+                                    Border.all(color: const Color(0x66EF4444)),
                               ),
-                              child: const Text('AT RISK', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFFFF9999), letterSpacing: 0.06)),
+                              child: const Text('AT RISK',
+                                  style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w800,
+                                      color: Color(0xFFFF9999),
+                                      letterSpacing: 0.06)),
                             ),
                           ],
                         ),
@@ -144,7 +225,10 @@ class _StreakShieldModalState extends State<StreakShieldModal>
                       const SizedBox(height: 10),
                       const Text(
                         'Privacy-safe — teammates never see balances, only %',
-                        style: TextStyle(fontSize: 10.5, color: GXColors.textMute, letterSpacing: 0.04),
+                        style: TextStyle(
+                            fontSize: 10.5,
+                            color: GXColors.textMute,
+                            letterSpacing: 0.04),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 14),

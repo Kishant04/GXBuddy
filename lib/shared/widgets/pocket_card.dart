@@ -29,10 +29,16 @@ class PocketCard extends StatelessWidget {
                     colors: [color, color.withValues(alpha: 0.8)],
                   ),
                   borderRadius: BorderRadius.circular(12),
-                  boxShadow: [BoxShadow(color: color.withValues(alpha: 0.35), blurRadius: 16, offset: const Offset(0, 6))],
+                  boxShadow: [
+                    BoxShadow(
+                        color: color.withValues(alpha: 0.35),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6))
+                  ],
                 ),
                 child: Center(
-                  child: Text(pocket.icon, style: const TextStyle(fontSize: 22)),
+                  child:
+                      Text(pocket.icon, style: const TextStyle(fontSize: 22)),
                 ),
               ),
               const SizedBox(width: 12),
@@ -42,11 +48,15 @@ class PocketCard extends StatelessWidget {
                   children: [
                     Text(
                       pocket.name,
-                      style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700, color: GXColors.textWhite),
+                      style: const TextStyle(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w700,
+                          color: GXColors.textWhite),
                     ),
                     Text(
                       pocket.note,
-                      style: const TextStyle(fontSize: 11.5, color: GXColors.textSoft),
+                      style: const TextStyle(
+                          fontSize: 11.5, color: GXColors.textSoft),
                     ),
                   ],
                 ),
@@ -56,11 +66,15 @@ class PocketCard extends StatelessWidget {
                 children: [
                   Text(
                     'RM${pocket.balance.toStringAsFixed(0)}',
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: GXColors.textWhite),
+                    style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: GXColors.textWhite),
                   ),
                   Text(
                     'of RM${pocket.target.toStringAsFixed(0)}',
-                    style: const TextStyle(fontSize: 10.5, color: GXColors.textMute),
+                    style: const TextStyle(
+                        fontSize: 10.5, color: GXColors.textMute),
                   ),
                 ],
               ),

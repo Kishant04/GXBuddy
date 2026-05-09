@@ -1,49 +1,27 @@
 import 'package:dio/dio.dart';
 import '../config/app_config.dart';
-import 'api_exceptions.dart';
+import '../storage/auth_token_store.dart';
+import 'api_exception.dart';
+import 'auth_interceptor.dart';
 
 class ApiClient {
-  ApiClient() {
+  ApiClient({required AuthTokenStore tokenStore}) {
+    final baseUrl = tokenStore.apiBaseUrlOverride ?? AppConfig.apiBaseUrl;
     _dio = Dio(
       BaseOptions(
-        baseUrl: AppConfig.baseUrl,
+        baseUrl: baseUrl,
         connectTimeout: AppConfig.connectTimeout,
         receiveTimeout: AppConfig.receiveTimeout,
-        headers: {
+        headers: const {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
       ),
     );
-    _dio.interceptors.add(_authInterceptor());
+    _dio.interceptors.add(AuthInterceptor(tokenStore));
   }
 
   late final Dio _dio;
-  String? _accessToken;
-
-  void setToken(String token) => _accessToken = token;
-  void clearToken() => _accessToken = null;
-
-  Interceptor _authInterceptor() => InterceptorsWrapper(
-        onRequest: (options, handler) {
-          if (_accessToken != null) {
-            options.headers['Authorization'] = 'Bearer $_accessToken';
-          }
-          handler.next(options);
-        },
-        onError: (error, handler) {
-          if (error.response?.statusCode == 401) {
-            handler.reject(
-              DioException(
-                requestOptions: error.requestOptions,
-                error: const UnauthorizedException(),
-              ),
-            );
-          } else {
-            handler.next(error);
-          }
-        },
-      );
 
   Future<T> get<T>(
     String path, {
@@ -71,6 +49,27 @@ class ApiClient {
     }
   }
 
+  Future<T> patch<T>(
+    String path, {
+    dynamic data,
+    T Function(dynamic)? fromJson,
+  }) async {
+    try {
+      final res = await _dio.patch(path, data: data);
+      return fromJson != null ? fromJson(res.data) : res.data as T;
+    } on DioException catch (e) {
+      throw _wrap(e);
+    }
+  }
+
+  Future<void> delete(String path) async {
+    try {
+      await _dio.delete(path);
+    } on DioException catch (e) {
+      throw _wrap(e);
+    }
+  }
+
   ApiException _wrap(DioException e) {
     if (e.error is ApiException) return e.error as ApiException;
     if (e.type == DioExceptionType.connectionError ||
@@ -78,7 +77,15 @@ class ApiClient {
       return NetworkException(e.message ?? 'No internet connection');
     }
     final code = e.response?.statusCode;
-    final msg = e.response?.data?['detail'] as String? ?? e.message ?? 'Unexpected error';
-    return ApiException(msg, statusCode: code);
+    final msg = e.response?.data?['detail'] as String? ??
+        e.message ??
+        'Unexpected error';
+    return switch (code) {
+      401 => const UnauthorizedException(),
+      404 => NotFoundException(msg),
+      422 => ValidationException(msg),
+      int c when c >= 500 => ServerException(msg),
+      _ => ApiException(msg, statusCode: code),
+    };
   }
 }

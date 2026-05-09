@@ -1,4 +1,5 @@
 enum IncomeType { monthly, gig }
+
 enum SplitRuleType { fixed, percent }
 
 class PocketAllocation {
@@ -14,7 +15,11 @@ class PocketAllocation {
   final String icon;
   final String colorHex;
 
-  PocketAllocation copyWith({String? pocketName, double? value, String? icon, String? colorHex}) =>
+  PocketAllocation copyWith(
+          {String? pocketName,
+          double? value,
+          String? icon,
+          String? colorHex}) =>
       PocketAllocation(
         pocketName: pocketName ?? this.pocketName,
         value: value ?? this.value,
@@ -41,13 +46,19 @@ class AutopilotRule {
   final String? lastSplitId;
 
   double totalSplitForSalary(double salary) => allocations.fold(0, (sum, a) {
-        if (splitRule == SplitRuleType.percent) return sum + (salary * a.value / 100);
+        if (splitRule == SplitRuleType.percent) {
+          return sum + (salary * a.value / 100);
+        }
         return sum + a.value;
       });
 
   AutopilotRule copyWith({
-    double? threshold, IncomeType? incomeType, SplitRuleType? splitRule,
-    List<PocketAllocation>? allocations, double? lastSplitAmount, String? lastSplitId,
+    double? threshold,
+    IncomeType? incomeType,
+    SplitRuleType? splitRule,
+    List<PocketAllocation>? allocations,
+    double? lastSplitAmount,
+    String? lastSplitId,
   }) =>
       AutopilotRule(
         threshold: threshold ?? this.threshold,
@@ -66,7 +77,8 @@ class AutopilotSplitResult {
     required this.splits,
   });
 
-  factory AutopilotSplitResult.fromJson(Map<String, dynamic> json) => AutopilotSplitResult(
+  factory AutopilotSplitResult.fromJson(Map<String, dynamic> json) =>
+      AutopilotSplitResult(
         splitId: json['split_id'] as String,
         totalAmount: (json['total_amount'] as num).toDouble(),
         splits: (json['splits'] as List<dynamic>)

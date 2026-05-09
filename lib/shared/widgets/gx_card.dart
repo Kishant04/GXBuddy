@@ -37,11 +37,25 @@ class GXCard extends StatelessWidget {
       border: Border.all(color: borderColor, width: 1),
       boxShadow: glowColor != null
           ? [
-              BoxShadow(color: glowColor!.withValues(alpha: 0.20), blurRadius: 40, spreadRadius: 0),
-              BoxShadow(color: glowColor!.withValues(alpha: 0.12), blurRadius: 16, spreadRadius: 0),
-              const BoxShadow(color: Color(0x66000000), blurRadius: 28, offset: Offset(0, 10)),
+              BoxShadow(
+                  color: glowColor!.withValues(alpha: 0.20),
+                  blurRadius: 40,
+                  spreadRadius: 0),
+              BoxShadow(
+                  color: glowColor!.withValues(alpha: 0.12),
+                  blurRadius: 16,
+                  spreadRadius: 0),
+              const BoxShadow(
+                  color: Color(0x66000000),
+                  blurRadius: 28,
+                  offset: Offset(0, 10)),
             ]
-          : [const BoxShadow(color: Color(0x66000000), blurRadius: 28, offset: Offset(0, 10))],
+          : [
+              const BoxShadow(
+                  color: Color(0x66000000),
+                  blurRadius: 28,
+                  offset: Offset(0, 10))
+            ],
     );
 
     Widget card = Container(

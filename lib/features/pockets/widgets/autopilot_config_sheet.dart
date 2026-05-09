@@ -17,13 +17,15 @@ class AutopilotConfigSheet extends ConsumerWidget {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topCenter, end: Alignment.bottomCenter,
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
           colors: [Color(0xFF1F0A4D), Color(0xFF0E0228), Color(0xFF08001A)],
           stops: [0.0, 0.75, 1.0],
         ),
         borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
       ),
-      padding: EdgeInsets.fromLTRB(20, 18, 20, MediaQuery.of(context).viewInsets.bottom + 32),
+      padding: EdgeInsets.fromLTRB(
+          20, 18, 20, MediaQuery.of(context).viewInsets.bottom + 32),
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -32,26 +34,37 @@ class AutopilotConfigSheet extends ConsumerWidget {
             // Handle
             Center(
               child: Container(
-                width: 40, height: 4,
+                width: 40,
+                height: 4,
                 decoration: BoxDecoration(
-                  color: const Color(0x30FFFFFF), borderRadius: BorderRadius.circular(99),
+                  color: const Color(0x30FFFFFF),
+                  borderRadius: BorderRadius.circular(99),
                 ),
               ),
             ),
             const SizedBox(height: 18),
             const Text(
               '· SALARY AUTOPILOT ·',
-              style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800, color: Color(0xFFD6BFFF), letterSpacing: 0.18),
+              style: TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFFD6BFFF),
+                  letterSpacing: 0.18),
             ),
             const SizedBox(height: 6),
             const Text(
               'Set it once. Save forever.',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: GXColors.textWhite, letterSpacing: -0.03),
+              style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: GXColors.textWhite,
+                  letterSpacing: -0.03),
             ),
             const SizedBox(height: 4),
             const Text(
               'GXBuddy splits your salary into pockets the moment it lands.',
-              style: TextStyle(fontSize: 12.5, color: GXColors.textSoft, height: 1.5),
+              style: TextStyle(
+                  fontSize: 12.5, color: GXColors.textSoft, height: 1.5),
             ),
             const SizedBox(height: 20),
             // Threshold
@@ -62,17 +75,25 @@ class AutopilotConfigSheet extends ConsumerWidget {
                 children: [
                   Row(
                     children: [
-                      const Text('RM', style: TextStyle(fontSize: 13, color: GXColors.textSoft)),
+                      const Text('RM',
+                          style: TextStyle(
+                              fontSize: 13, color: GXColors.textSoft)),
                       const SizedBox(width: 4),
                       Text(
                         rule.threshold.toStringAsFixed(0),
-                        style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800, color: GXColors.textWhite, letterSpacing: -0.025),
+                        style: const TextStyle(
+                            fontSize: 30,
+                            fontWeight: FontWeight.w800,
+                            color: GXColors.textWhite,
+                            letterSpacing: -0.025),
                       ),
                     ],
                   ),
                   Slider(
                     value: rule.threshold,
-                    min: 200, max: 3000, divisions: 28,
+                    min: 200,
+                    max: 3000,
+                    divisions: 28,
                     activeColor: GXColors.violet,
                     inactiveColor: const Color(0x1AFFFFFF),
                     onChanged: notifier.setThreshold,
@@ -80,14 +101,19 @@ class AutopilotConfigSheet extends ConsumerWidget {
                   const Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('RM200', style: TextStyle(fontSize: 10.5, color: GXColors.textMute)),
-                      Text('RM3,000', style: TextStyle(fontSize: 10.5, color: GXColors.textMute)),
+                      Text('RM200',
+                          style: TextStyle(
+                              fontSize: 10.5, color: GXColors.textMute)),
+                      Text('RM3,000',
+                          style: TextStyle(
+                              fontSize: 10.5, color: GXColors.textMute)),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Trigger autopilot for credits above RM${rule.threshold.toStringAsFixed(0)}',
-                    style: const TextStyle(fontSize: 11, color: GXColors.textMute),
+                    style:
+                        const TextStyle(fontSize: 11, color: GXColors.textMute),
                   ),
                 ],
               ),
@@ -123,10 +149,12 @@ class AutopilotConfigSheet extends ConsumerWidget {
             _Section(
               label: 'Pocket allocation',
               child: Column(
-                children: rule.allocations.map((a) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: _AllocRow(alloc: a, splitRule: rule.splitRule),
-                )).toList(),
+                children: rule.allocations
+                    .map((a) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: _AllocRow(alloc: a, splitRule: rule.splitRule),
+                        ))
+                    .toList(),
               ),
             ),
             const SizedBox(height: 20),
@@ -158,7 +186,11 @@ class _Section extends StatelessWidget {
         children: [
           Text(
             label.toUpperCase(),
-            style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800, color: GXColors.textSoft, letterSpacing: 0.14),
+            style: const TextStyle(
+                fontSize: 10.5,
+                fontWeight: FontWeight.w800,
+                color: GXColors.textSoft,
+                letterSpacing: 0.14),
           ),
           const SizedBox(height: 8),
           Container(
@@ -182,7 +214,8 @@ class _Opt<T> {
 }
 
 class _SegmentControl<T> extends StatelessWidget {
-  const _SegmentControl({required this.options, required this.value, required this.onChange});
+  const _SegmentControl(
+      {required this.options, required this.value, required this.onChange});
   final List<_Opt<T>> options;
   final T value;
   final ValueChanged<T> onChange;
@@ -201,13 +234,18 @@ class _SegmentControl<T> extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: active
                       ? const LinearGradient(
-                          begin: Alignment.topCenter, end: Alignment.bottomCenter,
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
                           colors: [Color(0xFFA45EFF), GXColors.violetDeep],
                         )
                       : null,
                   borderRadius: BorderRadius.circular(9),
                   boxShadow: active
-                      ? [BoxShadow(color: GXColors.violet.withValues(alpha: 0.40), blurRadius: 14)]
+                      ? [
+                          BoxShadow(
+                              color: GXColors.violet.withValues(alpha: 0.40),
+                              blurRadius: 14)
+                        ]
                       : null,
                 ),
                 child: Column(
@@ -218,7 +256,8 @@ class _SegmentControl<T> extends StatelessWidget {
                       o.label,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 11, fontWeight: FontWeight.w600,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
                         color: active ? GXColors.textWhite : GXColors.textSoft,
                       ),
                     ),
@@ -238,24 +277,30 @@ class _AllocRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = Color(int.parse('FF${alloc.colorHex.replaceAll('#', '')}', radix: 16));
+    final color =
+        Color(int.parse('FF${alloc.colorHex.replaceAll('#', '')}', radix: 16));
     final suffix = splitRule == SplitRuleType.percent ? '%' : '';
 
     return Row(
       children: [
         Container(
-          width: 30, height: 30,
+          width: 30,
+          height: 30,
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(9),
             border: Border.all(color: color.withValues(alpha: 0.33)),
           ),
-          child: Center(child: Text(alloc.icon, style: const TextStyle(fontSize: 14))),
+          child: Center(
+              child: Text(alloc.icon, style: const TextStyle(fontSize: 14))),
         ),
         const SizedBox(width: 10),
         Expanded(
           child: Text(alloc.pocketName,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: GXColors.textWhite)),
+              style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: GXColors.textWhite)),
         ),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
@@ -266,7 +311,8 @@ class _AllocRow extends StatelessWidget {
           ),
           child: Text(
             '${alloc.value.toStringAsFixed(0)}$suffix',
-            style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: color),
+            style: TextStyle(
+                fontSize: 13.5, fontWeight: FontWeight.w800, color: color),
           ),
         ),
       ],

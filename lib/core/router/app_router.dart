@@ -6,14 +6,24 @@ import '../../features/spend/spend_screen.dart';
 import '../../features/pockets/pockets_screen.dart';
 import '../../features/squad/squad_screen.dart';
 import '../../features/profile/profile_screen.dart';
+import '../../features/gxbank/gxbank_entry_screen.dart';
+import '../../features/notifications/notification_preview_screen.dart';
 
 final _rootKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 final _shellKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
 
 final appRouter = GoRouter(
   navigatorKey: _rootKey,
-  initialLocation: '/home',
+  initialLocation: '/bank',
   routes: [
+    GoRoute(
+      path: '/bank',
+      builder: (context, state) => const GXBankEntryScreen(),
+    ),
+    GoRoute(
+      path: '/notifications',
+      builder: (context, state) => const NotificationPreviewScreen(),
+    ),
     ShellRoute(
       navigatorKey: _shellKey,
       builder: (context, state, child) => AppShell(child: child),

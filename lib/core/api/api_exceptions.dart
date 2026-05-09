@@ -12,7 +12,8 @@ class NetworkException extends ApiException {
 }
 
 class UnauthorizedException extends ApiException {
-  const UnauthorizedException() : super('Session expired. Please log in again.', statusCode: 401);
+  const UnauthorizedException()
+      : super('Session expired. Please log in again.', statusCode: 401);
 }
 
 class NotFoundException extends ApiException {

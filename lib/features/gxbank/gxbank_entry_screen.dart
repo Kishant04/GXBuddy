@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/gx_colors.dart';
 import '../../models/mascot.dart';
 import '../../shared/widgets/animated_mascot.dart';
@@ -15,13 +16,7 @@ class _GXBankEntryScreenState extends State<GXBankEntryScreen> {
   bool _balanceHidden = false;
 
   void _openGXBuddy() {
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        pageBuilder: (_, animation, __) => const _GXBuddyHost(),
-        transitionsBuilder: (_, animation, __, child) => FadeTransition(opacity: animation, child: child),
-        transitionDuration: const Duration(milliseconds: 400),
-      ),
-    );
+    context.push('/home');
   }
 
   @override
@@ -33,14 +28,22 @@ class _GXBankEntryScreenState extends State<GXBankEntryScreen> {
           gradient: RadialGradient(
             center: Alignment(0.0, -0.7),
             radius: 1.6,
-            colors: [Color(0xFF5B1A9E), Color(0xFF2A0A5C), Color(0xFF0E0228), Color(0xFF08001A)],
+            colors: [
+              Color(0xFF5B1A9E),
+              Color(0xFF2A0A5C),
+              Color(0xFF0E0228),
+              Color(0xFF08001A)
+            ],
             stops: [0.0, 0.35, 0.65, 1.0],
           ),
         ),
         child: SafeArea(
           child: Column(
             children: [
-              _AppBar(balanceHidden: _balanceHidden, onToggle: () => setState(() => _balanceHidden = !_balanceHidden)),
+              _AppBar(
+                  balanceHidden: _balanceHidden,
+                  onToggle: () =>
+                      setState(() => _balanceHidden = !_balanceHidden)),
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.only(bottom: 40),
@@ -59,7 +62,10 @@ class _GXBankEntryScreenState extends State<GXBankEntryScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text('Your everyday account',
-                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: GXColors.textWhite)),
+                                style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: GXColors.textWhite)),
                           ],
                         ),
                       ),
@@ -69,9 +75,17 @@ class _GXBankEntryScreenState extends State<GXBankEntryScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Row(
                           children: [
-                            Expanded(child: _AccountCard(label: 'Main account', amount: 'RM3,900.00', body: _ViewTransactions())),
+                            Expanded(
+                                child: _AccountCard(
+                                    label: 'Main account',
+                                    amount: 'RM3,900.00',
+                                    body: _ViewTransactions())),
                             const SizedBox(width: 10),
-                            Expanded(child: _AccountCard(label: 'Saving Pockets', amount: 'RM1,507.38', body: _PocketAvatars())),
+                            Expanded(
+                                child: _AccountCard(
+                                    label: 'Saving Pockets',
+                                    amount: 'RM1,507.38',
+                                    body: _PocketAvatars())),
                             const SizedBox(width: 10),
                             Expanded(child: _BuddyCard(onTap: _openGXBuddy)),
                           ],
@@ -81,7 +95,10 @@ class _GXBankEntryScreenState extends State<GXBankEntryScreen> {
                       const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 18),
                         child: Text('For you today',
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: GXColors.textWhite)),
+                            style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: GXColors.textWhite)),
                       ),
                       const SizedBox(height: 12),
                       // GXBuddy promo card
@@ -93,16 +110,25 @@ class _GXBankEntryScreenState extends State<GXBankEntryScreen> {
                       const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 18),
                         child: Text('Your insights',
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: GXColors.textWhite)),
+                            style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: GXColors.textWhite)),
                       ),
                       const SizedBox(height: 12),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Row(
                           children: const [
-                            Expanded(child: _InsightChip(color: Color(0xFFFFB347), label: 'Spending up 18%')),
+                            Expanded(
+                                child: _InsightChip(
+                                    color: Color(0xFFFFB347),
+                                    label: 'Spending up 18%')),
                             SizedBox(width: 10),
-                            Expanded(child: _InsightChip(color: Color(0xFF60A5FA), label: '2 bills coming')),
+                            Expanded(
+                                child: _InsightChip(
+                                    color: Color(0xFF60A5FA),
+                                    label: '2 bills coming')),
                           ],
                         ),
                       ),
@@ -116,22 +142,6 @@ class _GXBankEntryScreenState extends State<GXBankEntryScreen> {
       ),
     );
   }
-}
-
-// ── GXBuddy host — wraps the go_router app so the bank screen can push to it ──
-class _GXBuddyHost extends StatelessWidget {
-  const _GXBuddyHost();
-
-  @override
-  Widget build(BuildContext context) => MaterialApp.router(
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          useMaterial3: true, brightness: Brightness.dark,
-          scaffoldBackgroundColor: GXColors.bgPrimary,
-          colorScheme: const ColorScheme.dark(primary: GXColors.violet, surface: GXColors.bgCard),
-        ),
-        routerConfig: appRouter,
-      );
 }
 
 // ── Sub-widgets ───────────────────────────────────────────────────────────────
@@ -152,7 +162,8 @@ class _AppBar extends StatelessWidget {
                   Row(
                     children: const [
                       Text('Total balance',
-                          style: TextStyle(fontSize: 13, color: Color(0xBFFFFFFF))),
+                          style: TextStyle(
+                              fontSize: 13, color: Color(0xBFFFFFFF))),
                       SizedBox(width: 6),
                       Icon(Icons.shield, color: GXColors.success, size: 14),
                     ],
@@ -161,22 +172,29 @@ class _AppBar extends StatelessWidget {
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.help_outline_rounded, color: GXColors.textSoft, size: 20),
+              icon: const Icon(Icons.help_outline_rounded,
+                  color: GXColors.textSoft, size: 20),
               onPressed: () {},
             ),
             Stack(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.notifications_outlined, color: GXColors.textWhite, size: 20),
+                  icon: const Icon(Icons.notifications_outlined,
+                      color: GXColors.textWhite, size: 20),
                   onPressed: () {},
                 ),
                 Positioned(
-                  top: 8, right: 8,
+                  top: 8,
+                  right: 8,
                   child: Container(
-                    width: 8, height: 8,
+                    width: 8,
+                    height: 8,
                     decoration: BoxDecoration(
-                      color: GXColors.pink, shape: BoxShape.circle,
-                      boxShadow: [BoxShadow(color: GXColors.pink, blurRadius: 8)],
+                      color: GXColors.pink,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(color: GXColors.pink, blurRadius: 8)
+                      ],
                     ),
                   ),
                 ),
@@ -202,19 +220,25 @@ class _BalanceSection extends StatelessWidget {
               children: [
                 Text(
                   hidden ? '••••••••' : 'RM3,900.00',
-                  style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800, color: GXColors.textWhite, letterSpacing: -0.03),
+                  style: const TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.w800,
+                      color: GXColors.textWhite,
+                      letterSpacing: -0.03),
                 ),
                 const SizedBox(width: 8),
                 GestureDetector(
                   onTap: () {},
-                  child: const Icon(Icons.visibility_outlined, color: Color(0xBFFFFFFF), size: 18),
+                  child: const Icon(Icons.visibility_outlined,
+                      color: Color(0xBFFFFFFF), size: 18),
                 ),
               ],
             ),
             const SizedBox(height: 4),
             const Row(
               children: [
-                Text('Balance info', style: TextStyle(fontSize: 12, color: Color(0x99FFFFFF))),
+                Text('Balance info',
+                    style: TextStyle(fontSize: 12, color: Color(0x99FFFFFF))),
                 SizedBox(width: 2),
                 Icon(Icons.chevron_right, color: Color(0x99FFFFFF), size: 14),
               ],
@@ -232,7 +256,8 @@ class _ActionRow extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              begin: Alignment.topCenter, end: Alignment.bottomCenter,
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
               colors: [Color(0x12FFFFFF), Color(0x05FFFFFF)],
             ),
             borderRadius: BorderRadius.circular(22),
@@ -259,25 +284,40 @@ class _ActionItem extends StatelessWidget {
   Widget build(BuildContext context) => Column(
         children: [
           Container(
-            width: 50, height: 50,
+            width: 50,
+            height: 50,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: const LinearGradient(
-                begin: Alignment.topCenter, end: Alignment.bottomCenter,
-                colors: [Color(0xFFA45EFF), GXColors.violet, GXColors.violetDeep],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFFA45EFF),
+                  GXColors.violet,
+                  GXColors.violetDeep
+                ],
               ),
-              boxShadow: [BoxShadow(color: GXColors.violet.withValues(alpha: 0.50), blurRadius: 18)],
+              boxShadow: [
+                BoxShadow(
+                    color: GXColors.violet.withValues(alpha: 0.50),
+                    blurRadius: 18)
+              ],
             ),
             child: Icon(icon, color: Colors.white, size: 20),
           ),
           const SizedBox(height: 8),
-          Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: GXColors.textWhite)),
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: GXColors.textWhite)),
         ],
       );
 }
 
 class _AccountCard extends StatelessWidget {
-  const _AccountCard({required this.label, required this.amount, required this.body});
+  const _AccountCard(
+      {required this.label, required this.amount, required this.body});
   final String label;
   final String amount;
   final Widget body;
@@ -288,7 +328,8 @@ class _AccountCard extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            begin: Alignment.topCenter, end: Alignment.bottomCenter,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
             colors: [Color(0x0DFFFFFF), Color(0x05FFFFFF)],
           ),
           borderRadius: BorderRadius.circular(16),
@@ -298,8 +339,15 @@ class _AccountCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: const TextStyle(fontSize: 10.5, color: Color(0x8CFFFFFF))),
-            Text(amount, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: GXColors.textWhite, letterSpacing: -0.02)),
+            Text(label,
+                style:
+                    const TextStyle(fontSize: 10.5, color: Color(0x8CFFFFFF))),
+            Text(amount,
+                style: const TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w800,
+                    color: GXColors.textWhite,
+                    letterSpacing: -0.02)),
             body,
           ],
         ),
@@ -317,13 +365,19 @@ class _ViewTransactions extends StatelessWidget {
 class _PocketAvatars extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    const colors = [Color(0xFFA855F7), Color(0xFF22C796), Color(0xFF60A5FA), Color(0xFFF8326D)];
+    const colors = [
+      Color(0xFFA855F7),
+      Color(0xFF22C796),
+      Color(0xFF60A5FA),
+      Color(0xFFF8326D)
+    ];
     return Row(
       children: [
         ...colors.asMap().entries.map((e) => Transform.translate(
               offset: Offset(e.key * -8.0, 0),
               child: Container(
-                width: 18, height: 18,
+                width: 18,
+                height: 18,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: e.value,
@@ -332,7 +386,11 @@ class _PocketAvatars extends StatelessWidget {
               ),
             )),
         const SizedBox(width: 4),
-        const Text('+4', style: TextStyle(fontSize: 10.5, color: Color(0x99FFFFFF), fontWeight: FontWeight.w600)),
+        const Text('+4',
+            style: TextStyle(
+                fontSize: 10.5,
+                color: Color(0x99FFFFFF),
+                fontWeight: FontWeight.w600)),
       ],
     );
   }
@@ -356,7 +414,11 @@ class _BuddyCard extends StatelessWidget {
             ),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: const Color(0x8CD8B4FE), width: 1.5),
-            boxShadow: [BoxShadow(color: GXColors.violet.withValues(alpha: 0.28), blurRadius: 28)],
+            boxShadow: [
+              BoxShadow(
+                  color: GXColors.violet.withValues(alpha: 0.28),
+                  blurRadius: 28)
+            ],
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -366,27 +428,46 @@ class _BuddyCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const SizedBox(
-                    width: 40, height: 40,
+                    width: 40,
+                    height: 40,
                     child: AnimatedMascot(state: MascotState.calm, size: 40),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                     decoration: BoxDecoration(
                       color: GXColors.success.withValues(alpha: 0.20),
                       borderRadius: BorderRadius.circular(99),
-                      border: Border.all(color: GXColors.success.withValues(alpha: 0.50)),
+                      border: Border.all(
+                          color: GXColors.success.withValues(alpha: 0.50)),
                     ),
-                    child: const Text('NEW', style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.w800, color: Color(0xFF5DE3B6), letterSpacing: 0.06)),
+                    child: const Text('NEW',
+                        style: TextStyle(
+                            fontSize: 8.5,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF5DE3B6),
+                            letterSpacing: 0.06)),
                   ),
                 ],
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
-                  Text('GXBuddy', style: TextStyle(fontSize: 10.5, color: Color(0xA6FFFFFF))),
-                  Text('Smart save\nbuddy', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: GXColors.textWhite, height: 1.2)),
+                  Text('GXBuddy',
+                      style:
+                          TextStyle(fontSize: 10.5, color: Color(0xA6FFFFFF))),
+                  Text('Smart save\nbuddy',
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: GXColors.textWhite,
+                          height: 1.2)),
                   SizedBox(height: 4),
-                  Text('🔥 8d · Tap →', style: TextStyle(fontSize: 10.5, color: GXColors.gold, fontWeight: FontWeight.w700)),
+                  Text('🔥 8d · Tap →',
+                      style: TextStyle(
+                          fontSize: 10.5,
+                          color: GXColors.gold,
+                          fontWeight: FontWeight.w700)),
                 ],
               ),
             ],
@@ -404,7 +485,8 @@ class _BuddyPromoCard extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            begin: Alignment.topCenter, end: Alignment.bottomCenter,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
             colors: [Color(0x1E1FB287), Color(0x0AFFFFFF)],
           ),
           borderRadius: BorderRadius.circular(18),
@@ -413,13 +495,20 @@ class _BuddyPromoCard extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 56, height: 56,
+              width: 56,
+              height: 56,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [GXColors.success, GXColors.successDark]),
+                gradient: const LinearGradient(
+                    colors: [GXColors.success, GXColors.successDark]),
                 borderRadius: BorderRadius.circular(14),
-                boxShadow: [BoxShadow(color: GXColors.success.withValues(alpha: 0.40), blurRadius: 16)],
+                boxShadow: [
+                  BoxShadow(
+                      color: GXColors.success.withValues(alpha: 0.40),
+                      blurRadius: 16)
+                ],
               ),
-              child: const Icon(Icons.savings_rounded, color: Colors.white, size: 30),
+              child: const Icon(Icons.savings_rounded,
+                  color: Colors.white, size: 30),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -427,21 +516,29 @@ class _BuddyPromoCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text('GXBuddy spotted RM2 to save',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: GXColors.textWhite)),
+                      style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: GXColors.textWhite)),
                   const SizedBox(height: 2),
                   const Text('3 food deliveries this week. Round up?',
-                      style: TextStyle(fontSize: 11.5, color: Color(0xA6FFFFFF))),
+                      style:
+                          TextStyle(fontSize: 11.5, color: Color(0xA6FFFFFF))),
                   const SizedBox(height: 10),
                   GestureDetector(
                     onTap: onTap,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 6),
                       decoration: BoxDecoration(
                         border: Border.all(color: const Color(0x4DFFFFFF)),
                         borderRadius: BorderRadius.circular(99),
                       ),
                       child: const Text('Open GXBuddy ›',
-                          style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: GXColors.textWhite)),
+                          style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w700,
+                              color: GXColors.textWhite)),
                     ),
                   ),
                 ],
@@ -462,7 +559,8 @@ class _InsightChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topCenter, end: Alignment.bottomCenter,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
             colors: [color.withValues(alpha: 0.12), const Color(0x05FFFFFF)],
           ),
           borderRadius: BorderRadius.circular(14),
@@ -470,9 +568,20 @@ class _InsightChip extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle, boxShadow: [BoxShadow(color: color, blurRadius: 8)])),
+            Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                    boxShadow: [BoxShadow(color: color, blurRadius: 8)])),
             const SizedBox(width: 10),
-            Expanded(child: Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: GXColors.textWhite))),
+            Expanded(
+                child: Text(label,
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: GXColors.textWhite))),
           ],
         ),
       );
