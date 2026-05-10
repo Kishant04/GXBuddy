@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/gx_colors.dart';
 import '../../models/autopilot_rule.dart';
+import '../../models/pocket_model.dart';
 import '../../shared/widgets/error_state.dart';
 import '../../shared/widgets/gx_button.dart';
 import '../../shared/widgets/gx_card.dart';
@@ -51,10 +52,10 @@ class PocketsScreen extends ConsumerWidget {
   Widget _buildContent(
     BuildContext context,
     WidgetRef ref,
-    List<dynamic> pockets,
+    List<PocketModel> pockets,
     AutopilotRule autopilot,
   ) {
-    final total = pockets.fold(0.0, (s, p) => s + (p.balance as double));
+    final total = pockets.fold(0.0, (s, p) => s + p.balance);
     final lastSplit = autopilot.lastSplitAmount;
 
     return Column(

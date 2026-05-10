@@ -57,8 +57,14 @@ The backend requires a `backend/.env` file with Supabase and GLM credentials.
 flutter run \
   --dart-define=API_BASE_URL=http://10.0.2.2:8000 \
   --dart-define=WS_URL=ws://10.0.2.2:8000/ws \
-  --dart-define=USE_MOCK_DATA=false
+  --dart-define=USE_MOCK_DATA=false \
+  --dart-define=DEV_USER_ID=your-supabase-uuid \
+  --dart-define=DEV_TOKEN=your-supabase-jwt
 ```
+
+`DEV_USER_ID` and `DEV_TOKEN` are seeded into the app automatically at startup —
+no need to open Developer Settings and enter them manually.
+They are passed at run-time only and are **never stored in source code**.
 
 `10.0.2.2` is the Android emulator's alias for the host machine's `localhost`.
 For a real device, replace with your machine's LAN IP (e.g. `192.168.1.10`).
@@ -69,7 +75,9 @@ For a real device, replace with your machine's LAN IP (e.g. `192.168.1.10`).
 flutter run \
   --dart-define=API_BASE_URL=http://localhost:8000 \
   --dart-define=WS_URL=ws://localhost:8000/ws \
-  --dart-define=USE_MOCK_DATA=false
+  --dart-define=USE_MOCK_DATA=false \
+  --dart-define=DEV_USER_ID=your-supabase-uuid \
+  --dart-define=DEV_TOKEN=your-supabase-jwt
 ```
 
 ### Mock mode (no backend required)
@@ -82,11 +90,23 @@ All data comes from `lib/shared/constants/demo_data.dart`. No network calls are 
 
 ---
 
+## How to get your Supabase credentials
+
+1. Sign in via the Supabase dashboard or call `supabase.auth.signInWithPassword` from any client.
+2. Copy the `access_token` from the session response — this is your `DEV_TOKEN`.
+3. Copy the `user.id` (UUID) from the session response — this is your `DEV_USER_ID`.
+4. Pass both on the `flutter run` command line (see examples above).
+
+The app seeds these into `AuthTokenStore` automatically on startup. No manual steps needed.
+
+---
+
 ## How to connect to the backend at runtime (without rebuilding)
 
-1. Run the app in any mode.
-2. Open **Profile → Developer Settings**.
-3. Set:
+If you need to change credentials after the app is already running:
+
+1. Open **Profile → Developer Settings**.
+2. Set:
    - **API Base URL** — e.g. `http://10.0.2.2:8000`
    - **WebSocket URL** — e.g. `ws://10.0.2.2:8000/ws`
    - **User ID** — your Supabase user UUID

@@ -23,17 +23,35 @@ class ApiGxRepository implements GxRepository {
   final ApiClient apiClient;
   final WebSocketService wsService;
 
-  // ── User ──────────────────────────────────────────────────
+  // ── User / Profile ────────────────────────────────────────
 
   @override
   Future<UserModel> getUser() => apiClient.get(
         Endpoints.authMe,
         fromJson: (d) {
           final map = d as Map<String, dynamic>;
-          // GET /api/auth/me returns {user: {id, email}}.
           final inner = map['user'] as Map<String, dynamic>? ?? map;
           return UserModel.fromJson(inner);
         },
+      );
+
+  @override
+  Future<UserModel> getUserProfile() => apiClient.get(
+        Endpoints.userProfile,
+        fromJson: (d) => UserModel.fromJson(d as Map<String, dynamic>),
+      );
+
+  @override
+  Future<UserModel> updateProfile(UserModel profile) => apiClient.patch(
+        Endpoints.userProfile,
+        data: {
+          'name': profile.name,
+          'monthly_income': profile.monthlyIncome,
+          'push_enabled': profile.pushEnabled,
+          'anonymous_squad': profile.anonymousSquad,
+          'hide_balances': profile.hideBalances,
+        },
+        fromJson: (d) => UserModel.fromJson(d as Map<String, dynamic>),
       );
 
   // ── Dashboard ─────────────────────────────────────────────
@@ -122,7 +140,7 @@ class ApiGxRepository implements GxRepository {
     int limit = 20,
   }) =>
       apiClient.get(
-        '/api/alerts',
+        Endpoints.alerts,
         queryParameters: {
           'user_id': userId,
           if (severity != null) 'severity': severity,
@@ -139,7 +157,7 @@ class ApiGxRepository implements GxRepository {
 
   @override
   Future<void> markAlertActioned(String alertId) =>
-      apiClient.post('/api/alerts/$alertId/action');
+      apiClient.post(Endpoints.alertAction(alertId));
 
   // ── Pockets ───────────────────────────────────────────────
 
@@ -231,6 +249,20 @@ class ApiGxRepository implements GxRepository {
       apiClient.post(
         Endpoints.squadRally(squadId),
         data: {'target_member_index': targetMemberIndex},
+      );
+
+  // ── Insights ──────────────────────────────────────────────
+
+  @override
+  Future<String> getSpendInsight({required String userId}) => apiClient.get(
+        Endpoints.spendInsight,
+        queryParameters: {'user_id': userId},
+        fromJson: (d) {
+          final map = d as Map<String, dynamic>;
+          return map['insight'] as String? ??
+              map['tip'] as String? ??
+              'Loading your weekly insight…';
+        },
       );
 
   // ── Realtime ──────────────────────────────────────────────

@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/gx_colors.dart';
 import '../../models/mascot.dart';
 import '../../shared/widgets/animated_mascot.dart';
-import '../../core/router/app_router.dart';
 
 class GXBankEntryScreen extends StatefulWidget {
   const GXBankEntryScreen({super.key});
@@ -428,9 +427,9 @@ class _BuddyCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const SizedBox(
-                    width: 40,
-                    height: 40,
-                    child: AnimatedMascot(state: MascotState.calm, size: 40),
+                    width: 36,
+                    height: 36,
+                    child: AnimatedMascot(state: MascotState.calm, size: 36),
                   ),
                   Container(
                     padding:
@@ -443,7 +442,7 @@ class _BuddyCard extends StatelessWidget {
                     ),
                     child: const Text('NEW',
                         style: TextStyle(
-                            fontSize: 8.5,
+                            fontSize: 8,
                             fontWeight: FontWeight.w800,
                             color: Color(0xFF5DE3B6),
                             letterSpacing: 0.06)),
@@ -454,18 +453,17 @@ class _BuddyCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
                   Text('GXBuddy',
-                      style:
-                          TextStyle(fontSize: 10.5, color: Color(0xA6FFFFFF))),
+                      style: TextStyle(fontSize: 10, color: Color(0xA6FFFFFF))),
                   Text('Smart save\nbuddy',
                       style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 11,
                           fontWeight: FontWeight.w800,
                           color: GXColors.textWhite,
                           height: 1.2)),
-                  SizedBox(height: 4),
-                  Text('🔥 8d · Tap →',
+                  SizedBox(height: 2),
+                  Text('🔥 Tap →',
                       style: TextStyle(
-                          fontSize: 10.5,
+                          fontSize: 10,
                           color: GXColors.gold,
                           fontWeight: FontWeight.w700)),
                 ],

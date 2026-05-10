@@ -138,9 +138,9 @@ async def get_squad_view(db, squad_id: str, current_user_id: str):
         members_data=[
             {
                 "index": m["member_index"],
-                "progress": m["progressscore"],
-                "streak": m["streakdays"],
-                "goal_status": m["goalstatus"],
+                "progress": m["progress_score"],   # fixed key
+                "streak": m["streak_days"],          # fixed key
+                "goal_status": m["goal_status"],     # fixed key
             }
             for m in anon_members
         ],
@@ -148,14 +148,24 @@ async def get_squad_view(db, squad_id: str, current_user_id: str):
         days_remaining=days_remaining,
     )
 
+    avg_progress = (
+        round(sum(m["progress_score"] for m in anon_members) / len(anon_members), 1)
+        if anon_members else 0.0
+    )
+
     return {
-        "squadid": squad["id"],
+        "squad_id": squad["id"],
+        "squadid": squad["id"],          # keep alias for old clients
         "name": squad["name"],
         "goal_name": squad["goalname"],
+        "goal_amount": float(squad.get("goalamount") or 0),
         "deadline": squad["deadline"],
         "invite_code": squad["invitecode"],
+        "privacy_mode": squad.get("privacymode", "ANONYMOUS"),
+        "progress": avg_progress,
         "members": anon_members,
-        "ai_insight": ai_insight,
+        "insight": ai_insight,
+        "ai_insight": ai_insight,        # keep alias
     }
 
 

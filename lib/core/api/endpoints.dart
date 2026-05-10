@@ -6,6 +6,9 @@ abstract final class Endpoints {
   // ── Auth ──────────────────────────────────────────────────
   static const String authHealth = '/api/auth/health';
 
+  /// POST {email, password} → {access_token, user_id, email}
+  static const String authLogin = '/api/auth/login';
+
   /// Returns {user: {id, email}} for the authenticated user.
   static const String authMe = '/api/auth/me';
 
@@ -59,10 +62,25 @@ abstract final class Endpoints {
   /// POST (Bearer) — body: {target_member_index}
   static String squadRally(String id) => '/api/squad/$id/rally';
 
+  // ── Alerts (planned endpoint — no backend router yet) ────────
+  /// GET ?user_id=&severity=&limit=
+  static const String alerts = '/api/alerts';
+
+  /// POST — mark alert as actioned
+  static String alertAction(String id) => '/api/alerts/$id/action';
+
   // ── WebSocket ─────────────────────────────────────────────
   /// Used as a path reference. Full URL is built from AppConfig.wsUrl.
   /// Connection: ws://host/ws?token={jwt}
   static const String ws = '/ws';
+
+  // ── Profile ───────────────────────────────────────────────
+  /// GET / PATCH (Bearer) — user profile
+  static const String userProfile = '/api/profile';
+
+  // ── Insights ──────────────────────────────────────────────
+  /// GET ?user_id= — AI-generated spend insight
+  static const String spendInsight = '/api/insights';
 
   // ── Legacy aliases (kept for backward compat) ─────────────
 

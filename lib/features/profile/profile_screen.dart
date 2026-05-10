@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/gx_colors.dart';
+import '../../providers/app_providers.dart';
 import '../../shared/widgets/gx_card.dart';
 import '../dev/dev_settings_screen.dart';
 import '../notifications/notification_preview_screen.dart';
@@ -39,17 +41,24 @@ class ProfileScreen extends ConsumerWidget {
                         ],
                       ),
                       child: Center(
-                        child: Text(
-                          user.name[0],
-                          style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w800,
-                              color: GXColors.textWhite),
-                        ),
+                        child: user.name.isEmpty
+                            ? const SizedBox(
+                                width: 28, height: 28,
+                                child: CircularProgressIndicator(
+                                    color: Colors.white, strokeWidth: 2),
+                              )
+                            : Text(
+                                user.name[0].toUpperCase(),
+                                style: const TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w800,
+                                    color: GXColors.textWhite),
+                              ),
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Text(user.name,
+                    Text(
+                        user.name.isEmpty ? 'Loading...' : user.name,
                         style: const TextStyle(
                             fontSize: 19,
                             fontWeight: FontWeight.w800,
@@ -174,6 +183,40 @@ class ProfileScreen extends ConsumerWidget {
                       ),
                       const Icon(Icons.chevron_right,
                           color: GXColors.textMute, size: 20),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // Sign out
+              const SizedBox(height: 14),
+              GestureDetector(
+                onTap: () async {
+                  final store = ref.read(authTokenStoreProvider);
+                  await store.clearSession();
+                  if (context.mounted) context.go('/login');
+                },
+                child: GXCard(
+                  padding: const EdgeInsets.all(14),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: GXColors.danger.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.logout_rounded,
+                            color: GXColors.danger, size: 18),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text('Sign out',
+                          style: TextStyle(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w600,
+                              color: GXColors.danger)),
                     ],
                   ),
                 ),

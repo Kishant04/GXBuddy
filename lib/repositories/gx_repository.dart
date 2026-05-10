@@ -14,8 +14,10 @@ import '../models/user_model.dart';
 /// Switch implementations by changing [repositoryProvider] in
 /// lib/providers/repository_provider.dart.
 abstract class GxRepository {
-  // ── User ──────────────────────────────────────────────────
+  // ── User / Profile ────────────────────────────────────────
   Future<UserModel> getUser();
+  Future<UserModel> getUserProfile();
+  Future<UserModel> updateProfile(UserModel profile);
 
   // ── Dashboard ─────────────────────────────────────────────
   Future<DashboardModel> getDashboard({required String userId});
@@ -70,6 +72,10 @@ abstract class GxRepository {
     required String squadId,
     required int targetMemberIndex,
   });
+
+  // ── Insights ──────────────────────────────────────────────
+  /// Returns AI-generated spend insight text for the current week.
+  Future<String> getSpendInsight({required String userId});
 
   // ── Realtime ──────────────────────────────────────────────
   Stream<RealtimeEvent> connectRealtime();

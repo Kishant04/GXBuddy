@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import '../config/app_config.dart';
 import '../storage/auth_token_store.dart';
@@ -12,26 +13,40 @@ class WebSocketService {
   WebSocketChannel? _channel;
   StreamController<RealtimeEvent>? _controller;
 
-  /// Opens a WebSocket connection authenticated via ?token= query parameter.
+  /// Opens a WebSocket connection.
   ///
-  /// Returns an empty broadcast stream immediately if no token is available.
-  /// Unknown or malformed frames are silently dropped.
+  /// Auth priority:
+  /// 1. ?token=<jwt> when a JWT is stored (production).
+  /// 2. ?user_id=<uuid> in debug builds (backend accepts this when DEBUG=true).
+  ///
+  /// Returns an empty broadcast stream if neither credential is available.
+  /// Connection failures are swallowed — WebSocket is non-critical.
   Stream<RealtimeEvent> connect() {
     _controller?.close();
     _controller = StreamController<RealtimeEvent>.broadcast();
 
     final token = _tokenStore.token;
-    if (token == null || token.isEmpty) {
+    final devId = kDebugMode ? AppConfig.devUserId : '';
+
+    if ((token == null || token.isEmpty) && devId.isEmpty) {
       return _controller!.stream;
     }
 
     final rawUrl = _tokenStore.wsUrlOverride ?? AppConfig.wsUrl;
-    final uri = Uri.parse(rawUrl).replace(
-      queryParameters: {'token': token},
-    );
+    final Map<String, String> queryParams = {};
+    if (token != null && token.isNotEmpty) {
+      queryParams['token'] = token;
+    } else if (devId.isNotEmpty) {
+      queryParams['user_id'] = devId;
+    }
+
+    final uri = Uri.parse(rawUrl).replace(queryParameters: queryParams);
 
     try {
       _channel = WebSocketChannel.connect(uri);
+      // Catch async connection failures (e.g. 1008 close from server)
+      // so they don't surface as unhandled exceptions.
+      _channel!.ready.catchError((_) {});
       _channel!.stream.listen(
         _onFrame,
         onError: (_) => _controller?.close(),

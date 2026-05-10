@@ -69,8 +69,10 @@ class SpendScreen extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-                // AI insight card (static until backend provides it)
-                const _AiInsightCard(),
+                // AI insight card — powered by Ilmu GLM
+                _AiInsightCard(
+                  insight: ref.watch(spendInsightProvider).valueOrNull,
+                ),
                 const SizedBox(height: 14),
                 // Filter chips
                 SizedBox(
@@ -127,7 +129,10 @@ class SpendScreen extends ConsumerWidget {
 }
 
 class _AiInsightCard extends StatelessWidget {
-  const _AiInsightCard();
+  const _AiInsightCard({this.insight});
+
+  /// Live insight text from the backend. When null, shows a loading state.
+  final String? insight;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -174,29 +179,22 @@ class _AiInsightCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            const Text.rich(
-              TextSpan(children: [
-                TextSpan(
-                  text: 'Food spending is ',
-                  style: TextStyle(
-                      fontSize: 13.5, color: GXColors.textWhite, height: 1.45),
+            // Show live GLM insight or a skeleton placeholder
+            if (insight == null || insight!.isEmpty)
+              Container(
+                height: 14,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: const Color(0x14FFFFFF),
+                  borderRadius: BorderRadius.circular(6),
                 ),
-                TextSpan(
-                  text: '178% higher',
-                  style: TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFFFF8FB1),
-                      height: 1.45),
-                ),
-                TextSpan(
-                  text:
-                      ' than your usual weekly average. Most happens after 8pm — try a Pause Tonight rule?',
-                  style: TextStyle(
-                      fontSize: 13.5, color: GXColors.textWhite, height: 1.45),
-                ),
-              ]),
-            ),
+              )
+            else
+              Text(
+                insight!,
+                style: const TextStyle(
+                    fontSize: 13.5, color: GXColors.textWhite, height: 1.45),
+              ),
           ],
         ),
       );

@@ -3,6 +3,17 @@ import '../../models/transaction_model.dart';
 import '../../providers/repository_provider.dart';
 import '../../providers/user_id_provider.dart';
 
+/// AI-generated spend insight from the backend (Ilmu GLM).
+final spendInsightProvider = FutureProvider<String>((ref) async {
+  final userId = ref.watch(resolvedUserIdProvider);
+  if (userId == null) return '';
+  try {
+    return await ref.read(repositoryProvider).getSpendInsight(userId: userId);
+  } catch (_) {
+    return '';
+  }
+});
+
 // ─── Async transactions ───────────────────────────────────────────────────────
 
 class TransactionsNotifier extends AsyncNotifier<List<TransactionModel>> {

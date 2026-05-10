@@ -10,7 +10,6 @@ import '../../providers/user_id_provider.dart';
 import '../../shared/widgets/alert_card.dart';
 import '../../shared/widgets/error_state.dart';
 import '../../shared/widgets/loading_state.dart';
-import '../notifications/notification_preview_screen.dart';
 import 'home_controller.dart';
 import 'widgets/demo_trigger_panel.dart';
 import 'widgets/mascot_status_card.dart';
@@ -92,7 +91,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             final split = ref.read(homeUiProvider).lastSplitResult;
             return SalarySplitAnimation(
               splitLines: split?.lines ?? const [],
-              salaryAmount: split != null ? 1200.0 : 1200.0,
+              salaryAmount: 1200.0,
               onComplete: () {
                 setState(() => _showSalary = false);
                 final s = ref.read(homeUiProvider).lastSplitResult;
@@ -252,9 +251,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _fireReceiveSalary() {
-    final salary = ref.read(userNameProvider).valueOrNull != null
-        ? 1200.0
-        : 1200.0; // always RM1200 for demo
+    const salary = 1200.0; // demo salary trigger amount
     ref
         .read(homeDashboardProvider.notifier)
         .receiveSalary(salaryAmount: salary)

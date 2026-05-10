@@ -2,9 +2,11 @@
 ///
 /// Usage:
 ///   flutter run \
-///     --dart-define=API_BASE_URL=http://192.168.1.10:8000 \
-///     --dart-define=WS_URL=ws://192.168.1.10:8000/ws \
-///     --dart-define=USE_MOCK_DATA=false
+///     --dart-define=API_BASE_URL=http://10.0.2.2:8000 \
+///     --dart-define=WS_URL=ws://10.0.2.2:8000/ws \
+///     --dart-define=USE_MOCK_DATA=false \
+///     --dart-define=DEV_USER_ID=your-supabase-uuid \
+///     --dart-define=DEV_TOKEN=your-supabase-jwt
 ///
 /// When omitted, defaults target the Android emulator (10.0.2.2 → host machine).
 abstract final class AppConfig {
@@ -27,6 +29,20 @@ abstract final class AppConfig {
   static const bool useMockData = bool.fromEnvironment(
     'USE_MOCK_DATA',
     defaultValue: false,
+  );
+
+  /// Test user UUID used in debug/dev mode when no JWT is available.
+  /// The backend accepts this via X-Dev-User-Id header when DEBUG=true.
+  static const String devUserId = String.fromEnvironment(
+    'DEV_USER_ID',
+    defaultValue: '464f572b-0abc-4317-a36c-4739a0a375ec',
+  );
+
+  /// Supabase JWT injected at run-time for production auth.
+  /// When empty, debug mode falls back to X-Dev-User-Id header bypass.
+  static const String devToken = String.fromEnvironment(
+    'DEV_TOKEN',
+    defaultValue: '',
   );
 
   static const Duration connectTimeout = Duration(seconds: 15);

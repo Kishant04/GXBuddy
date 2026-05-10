@@ -29,6 +29,18 @@ class MockGxRepository implements GxRepository {
     return DemoData.user;
   }
 
+  @override
+  Future<UserModel> getUserProfile() async {
+    await _delay();
+    return DemoData.user;
+  }
+
+  @override
+  Future<UserModel> updateProfile(UserModel profile) async {
+    await _delay();
+    return profile;
+  }
+
   // ── Dashboard ─────────────────────────────────────────────
 
   @override
@@ -309,6 +321,15 @@ class MockGxRepository implements GxRepository {
         'message': 'Hold Strong 💪',
       },
     ));
+  }
+
+  // ── Insights ──────────────────────────────────────────────
+
+  @override
+  Future<String> getSpendInsight({required String userId}) async {
+    await _delay();
+    return 'Food spending is your biggest category this week. '
+        'Try cooking at home once more to save RM30. 🍳';
   }
 
   // ── Realtime ──────────────────────────────────────────────
