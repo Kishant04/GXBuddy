@@ -9,9 +9,8 @@ fall back to safe template text.
 """
 
 import json
-import os
-
 import httpx
+from app.core.config import settings
 
 # ── Prompt constants ──────────────────────────────────────────────────────────
 
@@ -36,7 +35,7 @@ MASCOT_SYSTEM_PROMPT = """
 You are GX Buddy's emotion engine.
 Given weekly spending stats, return the mascot's emotional state.
 Return ONLY valid JSON, no markdown fences:
-{"state": "CALM|ALERT|PANICKED|CELEBRATING", "mood_line": "<short casual Malaysian English line, max 15 words>"}
+{"state": "CALM|WORRIED|ALERT|PANICKED|CELEBRATING", "mood_line": "<short casual Malaysian English line, max 15 words>"}
 """
 
 SQUAD_INSIGHT_SYSTEM_PROMPT = """
@@ -72,7 +71,7 @@ No markdown. One word category only.
 def _gemini_json_completion(
     system_prompt: str, user_prompt: str, api_key: str
 ) -> dict | None:
-    model = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+    model = settings.GEMINI_MODEL
     url = (
         f"https://generativelanguage.googleapis.com/v1beta/models/"
         f"{model}:generateContent?key={api_key}"
@@ -106,27 +105,18 @@ def _gemini_json_completion(
 
 # ── GLM / OpenAI-compatible client ───────────────────────────────────────────
 
-def _get_glm_key() -> str | None:
-    return os.getenv("GLM_API_KEY") or os.getenv("ilmu_api_key") or os.getenv("AI_API_KEY")
-
-
 def _get_base_url() -> str:
-    return (
-        os.getenv("GLM_BASE_URL")
-        or os.getenv("AI_BASE_URL")
-        or "https://api.ilmu.ai/v1/chat/completions"
-    )
-
-
-def _get_model() -> str:
-    return os.getenv("GLM_MODEL") or os.getenv("AI_MODEL") or "ilmu-glm-5.1"
+    url = settings.GLM_BASE_URL
+    if not url.endswith("/chat/completions"):
+        url = url.rstrip("/") + "/chat/completions"
+    return url
 
 
 def _glm_json_completion(
     system_prompt: str, user_prompt: str, api_key: str
 ) -> dict | None:
     payload = {
-        "model": _get_model(),
+        "model": settings.GLM_MODEL,
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
@@ -135,7 +125,7 @@ def _glm_json_completion(
         "response_format": {"type": "json_object"},
     }
     try:
-        with httpx.Client(timeout=6.0) as client:
+        with httpx.Client(timeout=8.0) as client:
             resp = client.post(
                 _get_base_url(),
                 headers={
@@ -160,16 +150,15 @@ def _glm_json_completion(
 
 def llm_json_completion(system_prompt: str, user_prompt: str) -> dict | None:
     """
-    Try Ilmu GLM first (primary), fall back to Gemini if available.
-    Returns parsed dict or None on any failure.
+    Try GLM first (primary fallback), then Gemini if available.
     """
-    glm_key = _get_glm_key()
+    glm_key = settings.GLM_API_KEY
     if glm_key:
         result = _glm_json_completion(system_prompt, user_prompt, glm_key)
         if result is not None:
             return result
 
-    gemini_key = os.getenv("GEMINI_API_KEY")
+    gemini_key = settings.GEMINI_API_KEY
     if gemini_key:
         return _gemini_json_completion(system_prompt, user_prompt, gemini_key)
 

@@ -79,12 +79,33 @@ class BudgetService:
 			}
 			for threshold in (60, 80, 100):
 				if usage_pct >= threshold and not threshold_flags[threshold]:
+					message = f"Budget reached {threshold}% ({usage_pct:.0f}%) this week."
+					# Check if an alert with this exact message already exists for this user today
+					# to avoid duplicate inserts during rapid refreshes.
+					existing = (
+						self.client.table(TABLES["alerts"])
+						.select("id")
+						.eq("userid", user_id)
+						.eq("message", message)
+						.gte("createdat", datetime.utcnow().replace(hour=0, minute=0, second=0).isoformat())
+						.execute()
+					)
+					
+					if not existing.data:
+						# Create the actual Alert row so it appears in recent_alerts
+						self.client.table(TABLES["alerts"]).insert({
+							"userid": user_id,
+							"message": message,
+							"severity": "ALERT" if threshold < 100 else "PANICKED",
+							"actiontaken": False
+						}).execute()
+
 					events.append(
 						ThresholdEvent(
 							budget_id=budget_id,
 							threshold=threshold,
 							usage_percent=usage_pct,
-							message=f"Budget reached {threshold}% ({usage_pct:.0f}%) this week.",
+							message=message,
 						)
 					)
 					self._update_threshold_flag(budget_id, threshold)

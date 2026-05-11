@@ -21,7 +21,10 @@ class Settings(BaseSettings):
 
     # App
     DEBUG: bool = True
+    DEMO_MODE: bool = True
     SECRET_KEY: str = "dev-secret-change-in-production"
+    DEMO_RESET_ENABLED: bool = False
+    DEMO_RESET_KEY: str = "local-demo-reset-key"
 
     class Config:
         env_file = ".env"

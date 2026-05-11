@@ -2,73 +2,60 @@
 
 GXBuddy is a smart financial companion that integrates with GXBank, providing AI-powered spending coaching, budget tracking, automated salary splitting (Autopilot), and social financial features (Squads).
 
+## Repository Structure
+
+- **`frontend/`**: Flutter mobile application.
+- **`backend/`**: FastAPI application.
+- **`docs/`**: Documentation and assets.
+- **`legacy-mockups/`**: Reference mockup files.
+
 ## Architecture
 
-- **Frontend:** Flutter (Dart)
+- **Frontend:** Flutter (Dart) in `frontend/`
   - **State Management:** Riverpod (`flutter_riverpod`)
   - **Navigation:** GoRouter (`go_router`)
-  - **Theming:** Custom GX-style theme and typography in `lib/core/theme/`
-  - **Patterns:** Feature-first directory structure (`lib/features/`)
-- **Backend:** FastAPI (Python)
+  - **Theming:** Custom GX-style theme in `lib/core/theme/`
+- **Backend:** FastAPI (Python) in `backend/`
   - **Database:** Supabase
   - **Real-time:** WebSockets
-  - **Background Jobs:** APScheduler
-  - **AI:** GLM for classification and risk scoring
 
 ## Getting Started
 
-### Prerequisites
-
-- Flutter SDK (latest stable)
-- Python 3.10+
-- Android Studio / Xcode (for emulators)
-
 ### Running the Frontend
 
-Navigate to the `GXBuddy` directory:
-
 ```bash
-cd GXBuddy
+cd GXBuddy/frontend
 flutter pub get
 flutter run
 ```
 
 To connect to a local backend on an Android emulator:
 ```bash
-flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000 --dart-define=WS_URL=ws://10.0.2.2:8000/ws --dart-define=USE_MOCK_DATA=false
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8001 --dart-define=WS_URL=ws://10.0.2.2:8001/ws --dart-define=USE_MOCK_DATA=false
 ```
 
 ### Running the Backend
-
-Navigate to the `GXBuddy/backend` directory:
 
 ```bash
 cd GXBuddy/backend
 # Create and activate a virtual environment
 python -m venv venv
-.\venv\Scripts\activate  # Windows
-source venv/bin/activate  # Unix/macOS
+.\venv\Scripts\activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
-Ensure a `.env` file exists in `GXBuddy/backend/` with the necessary credentials.
-
 ## Development Conventions
 
-- **Surgical Edits:** Prioritize targeted updates to existing files.
-- **Routing:** All routes must be declared in `lib/core/router/app_router.dart`. Use `context.push()` or `context.go()` for navigation.
-- **State Management:** Use `StateNotifierProvider` or `AsyncNotifierProvider` for feature logic. Avoid direct mutation of state outside of controllers.
-- **Data Models:** Use `*_model.dart` suffix for models that map to backend schemas.
-- **Mock Data:** Initial demo data is stored in `lib/shared/constants/demo_data.dart`.
-- **Security:**
-  - Never log or commit secrets/API keys.
-  - Sensitive files like `.env` are ignored by git.
-  - Use `AuthTokenStore` for managing user sessions and tokens.
+- **Frontend paths:** All source code is in `frontend/lib/`.
+- **Routing:** Declared in `frontend/lib/core/router/app_router.dart`.
+- **State Management:** Use `AsyncNotifierProvider` for feature logic.
+- **Data Models:** Use `*_model.dart` for API-compatible models.
+- **Mock Data:** Stored in `frontend/lib/shared/constants/demo_data.dart`.
+- **Security:** Never commit secrets. `*.env` is ignored.
 
 ## Common Tasks
 
-- **Adding a new screen:** Create a new folder in `lib/features/`, add the screen widget, and register the route in `app_router.dart`.
-- **Updating the Mascot:** The mascot state is driven by the backend via `DashboardResponse` or WebSocket events (`RealtimeEvent`).
-- **Changing API Endpoints:** Update `lib/core/api/endpoints.dart`.
-- **Modifying Theme:** Edit `lib/core/theme/gx_colors.dart` or `lib/core/theme/app_theme.dart`.
+- **Adding a new screen:** Create folder in `frontend/lib/features/`, register in `app_router.dart`.
+- **Updating the Mascot:** mascot state driven by `DashboardResponse` or WebSocket events.
+- **Changing API Endpoints:** Update `frontend/lib/core/api/endpoints.dart`.

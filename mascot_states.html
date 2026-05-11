@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GXBuddy Mascot States</title>
+    <style>
+        body {
+            background-color: #0C0121;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            margin-bottom: 40px;
+            color: #A45EFF;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            justify-content: center;
+            max-width: 1200px;
+        }
+        .card {
+            background-color: #130A2E;
+            border-radius: 20px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 200px;
+        }
+        .card h3 {
+            margin-top: 20px;
+            margin-bottom: 5px;
+            text-transform: capitalize;
+        }
+        .card p {
+            margin: 0;
+            font-size: 12px;
+            color: #8C84A4;
+            text-align: center;
+        }
+        canvas {
+            width: 150px;
+            height: 150px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>GXBuddy Mascot States</h1>
+    
+    <div class="container" id="canvas-container">
+        <!-- Cards injected by JS -->
+    </div>
+
+    <script>
+        const states = [
+            { name: 'calm', glow: '#22C796', screen: '#5BFF8C', desc: "Looking good! You're on track." },
+            { name: 'alert', glow: '#D97706', screen: '#FFB347', desc: "Spending is picking up." },
+            { name: 'panicked', glow: '#DC2626', screen: '#FF6B6B', desc: "Over 70% budget used!" },
+            { name: 'emergency', glow: '#FF0000', screen: '#FF3030', desc: "Past weekly limit!" },
+            { name: 'celebrating', glow: '#22C796', screen: '#5BFF8C', desc: "Proud of you!" }
+        ];
+
+        const container = document.getElementById('canvas-container');
+
+        states.forEach(state => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = 220;
+            canvas.height = 220;
+            
+            const h3 = document.createElement('h3');
+            h3.textContent = state.name;
+            
+            const p = document.createElement('p');
+            p.textContent = state.desc;
+
+            card.appendChild(canvas);
+            card.appendChild(h3);
+            card.appendChild(p);
+            container.appendChild(card);
+
+            drawMascot(canvas.getContext('2d'), state);
+        });
+
+        function roundRect(ctx, x, y, w, h, r) {
+            if (w < 2 * r) r = w / 2;
+            if (h < 2 * r) r = h / 2;
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.arcTo(x + w, y, x + w, y + h, r);
+            ctx.arcTo(x + w, y + h, x, y + h, r);
+            ctx.arcTo(x, y + h, x, y, r);
+            ctx.arcTo(x, y, x + w, y, r);
+            ctx.closePath();
+        }
+
+        function drawMascot(ctx, state) {
+            ctx.save();
+            // Scale and center a bit for 220x220 canvas
+            
+            // Draw Glow
+            ctx.save();
+            ctx.fillStyle = state.glow;
+            ctx.globalAlpha = 0.2;
+            ctx.filter = 'blur(20px)';
+            ctx.beginPath();
+            ctx.ellipse(110, 110, 70, 70, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            // Legs
+            ctx.fillStyle = '#2D353D';
+            roundRect(ctx, 75, 175, 20, 25, 8); ctx.fill();
+            roundRect(ctx, 125, 175, 20, 25, 8); ctx.fill();
+
+            // Body
+            ctx.fillStyle = '#3F4750';
+            roundRect(ctx, 50, 45, 120, 145, 32); ctx.fill();
+
+            // Side buttons
+            ctx.fillStyle = '#2D353D';
+            roundRect(ctx, 42, 80, 8, 20, 2); ctx.fill();
+            roundRect(ctx, 170, 100, 8, 30, 2); ctx.fill();
+
+            // Screen
+            ctx.fillStyle = state.screen;
+            roundRect(ctx, 62, 58, 96, 78, 14); ctx.fill();
+            ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+            ctx.lineWidth = 3;
+            roundRect(ctx, 62, 58, 96, 78, 14); ctx.stroke();
+
+            // Face
+            ctx.fillStyle = '#0A2818';
+            ctx.strokeStyle = '#0A2818';
+            
+            if (state.name === 'calm') {
+                roundRect(ctx, 84, 78, 10, 14, 2); ctx.fill();
+                roundRect(ctx, 128, 78, 10, 14, 2); ctx.fill();
+                ctx.fillStyle = 'white';
+                ctx.beginPath(); ctx.arc(89, 83, 2.4, 0, 2*Math.PI); ctx.fill();
+                ctx.beginPath(); ctx.arc(133, 83, 2.4, 0, 2*Math.PI); ctx.fill();
+                
+                ctx.beginPath();
+                ctx.moveTo(94, 102);
+                ctx.quadraticCurveTo(111, 116, 128, 102);
+                ctx.lineWidth = 3.5;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+            } 
+            else if (state.name === 'alert') {
+                ctx.save();
+                ctx.translate(87, 75.5); ctx.rotate(-12 * Math.PI / 180);
+                roundRect(ctx, -7, -1.5, 14, 3, 1.5); ctx.fill();
+                ctx.restore();
+
+                ctx.save();
+                ctx.translate(135, 75.5); ctx.rotate(12 * Math.PI / 180);
+                roundRect(ctx, -7, -1.5, 14, 3, 1.5); ctx.fill();
+                ctx.restore();
+
+                roundRect(ctx, 84, 80, 10, 14, 2); ctx.fill();
+                roundRect(ctx, 128, 80, 10, 14, 2); ctx.fill();
+
+                ctx.beginPath();
+                ctx.moveTo(95, 108);
+                ctx.quadraticCurveTo(111, 102, 127, 108);
+                ctx.lineWidth = 3.5; ctx.lineCap = 'round'; ctx.stroke();
+
+                ctx.fillStyle = '#7DD3FC';
+                ctx.beginPath();
+                ctx.moveTo(150, 78);
+                ctx.quadraticCurveTo(147, 84, 150, 89);
+                ctx.quadraticCurveTo(153, 84, 150, 78);
+                ctx.fill();
+            }
+            else if (state.name === 'panicked') {
+                ctx.lineWidth = 3.5; ctx.lineCap = 'round';
+                ctx.beginPath(); ctx.moveTo(82, 80); ctx.lineTo(94, 92); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(94, 80); ctx.lineTo(82, 92); ctx.stroke();
+                
+                ctx.beginPath(); ctx.moveTo(126, 80); ctx.lineTo(138, 92); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(138, 80); ctx.lineTo(126, 92); ctx.stroke();
+
+                ctx.beginPath(); ctx.ellipse(111, 108, 6, 7, 0, 0, 2*Math.PI); ctx.fill();
+
+                ctx.fillStyle = '#F8326D';
+                ctx.font = '900 20px sans-serif';
+                ctx.fillText('!', 155, 75);
+                ctx.fillStyle = '#0A2818'; // Reset
+            }
+            else if (state.name === 'emergency') {
+                ctx.lineWidth = 4.5; ctx.lineCap = 'round';
+                ctx.beginPath(); ctx.moveTo(80, 78); ctx.lineTo(98, 96); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(98, 78); ctx.lineTo(80, 96); ctx.stroke();
+                
+                ctx.beginPath(); ctx.moveTo(122, 78); ctx.lineTo(140, 96); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(140, 78); ctx.lineTo(122, 96); ctx.stroke();
+
+                ctx.beginPath(); ctx.ellipse(111, 113, 11, 13, 0, 0, 2*Math.PI); ctx.fill();
+            }
+            else if (state.name === 'celebrating') {
+                const drawStar = (cx) => {
+                    ctx.beginPath();
+                    ctx.moveTo(cx, 78);
+                    ctx.lineTo(cx + 2, 83);
+                    ctx.lineTo(cx + 5, 79);
+                    ctx.lineTo(cx + 3, 84);
+                    ctx.lineTo(cx + 6, 86);
+                    ctx.lineTo(cx + 1, 85);
+                    ctx.lineTo(cx, 90);
+                    ctx.lineTo(cx - 1, 85);
+                    ctx.lineTo(cx - 6, 86);
+                    ctx.lineTo(cx - 3, 84);
+                    ctx.lineTo(cx - 5, 79);
+                    ctx.lineTo(cx - 2, 83);
+                    ctx.fill();
+                };
+                drawStar(89); drawStar(133);
+
+                ctx.beginPath();
+                ctx.moveTo(90, 100);
+                ctx.quadraticCurveTo(111, 120, 132, 100);
+                ctx.quadraticCurveTo(126, 110, 111, 112);
+                ctx.quadraticCurveTo(96, 110, 90, 100);
+                ctx.fill();
+
+                // Sparkles
+                ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                const r = [ [60, 50], [160, 40], [45, 140], [165, 130], [55, 110] ];
+                r.forEach(p => {
+                    ctx.beginPath(); ctx.arc(p[0], p[1], 4, 0, 2*Math.PI); ctx.fill();
+                });
+            }
+
+            // Controls
+            ctx.fillStyle = '#FFD66B';
+            roundRect(ctx, 75, 142, 6, 20, 1.5); ctx.fill();
+            roundRect(ctx, 68, 149, 20, 6, 1.5); ctx.fill();
+
+            ctx.fillStyle = '#5BD8FF'; ctx.beginPath(); ctx.arc(118, 152, 5, 0, 2*Math.PI); ctx.fill();
+            ctx.fillStyle = '#F8326D'; ctx.beginPath(); ctx.arc(135, 160, 5.5, 0, 2*Math.PI); ctx.fill();
+            ctx.fillStyle = '#22C796'; ctx.beginPath(); ctx.arc(142, 146, 3.5, 0, 2*Math.PI); ctx.fill();
+
+            ctx.strokeStyle = 'rgba(10, 1, 24, 0.55)';
+            ctx.lineWidth = 1.2; ctx.lineCap = 'round';
+            for (let i = 0; i < 3; i++) {
+                ctx.beginPath(); ctx.moveTo(155 + i * 3, 148); ctx.lineTo(155 + i * 3, 166); ctx.stroke();
+            }
+
+            // Antenna
+            ctx.strokeStyle = '#3F4750';
+            ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(111, 38); ctx.lineTo(111, 20); ctx.stroke();
+
+            let ballColor = state.screen; // Using screen color for the ball glow
+            ctx.fillStyle = ballColor;
+            ctx.beginPath(); ctx.arc(111, 16, 5, 0, 2*Math.PI); ctx.fill();
+            
+            ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.arc(111, 16, 2.5, 0, 2*Math.PI); ctx.stroke();
+
+            ctx.restore();
+        }
+    </script>
+</body>
+</html>

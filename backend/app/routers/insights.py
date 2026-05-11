@@ -69,24 +69,25 @@ async def get_spend_insight(
         ),
     )
 
+    insight = ""
+    tip = "Try the 50/30/20 rule — 50% needs, 30% wants, 20% savings."
+    
     if ai_result:
-        return {
-            "insight": ai_result.get("insight", ""),
-            "category_highlight": ai_result.get("category_highlight", top_category),
-            "tip": ai_result.get("tip", ""),
-            "total_spent": round(total_spent, 2),
-            "top_category": top_category,
-        }
+        insight = str(ai_result.get("insight", "")).strip()
+        tip = str(ai_result.get("tip", tip)).strip()
 
-    # Fallback template
-    pct = round(top_amount / total_spent * 100) if total_spent > 0 else 0
-    return {
-        "insight": (
+    if not insight:
+        # Fallback template
+        pct = round(top_amount / total_spent * 100) if total_spent > 0 else 0
+        insight = (
             f"You've spent RM{total_spent:.0f} this week. "
             f"{top_category.capitalize()} is your biggest category at {pct}% of your spending."
-        ),
+        )
+
+    return {
+        "insight": insight,
         "category_highlight": top_category,
-        "tip": "Try the 50/30/20 rule — 50% needs, 30% wants, 20% savings.",
+        "tip": tip,
         "total_spent": round(total_spent, 2),
         "top_category": top_category,
     }

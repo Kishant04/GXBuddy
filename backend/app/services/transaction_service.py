@@ -100,6 +100,7 @@ class TransactionService:
     ) -> TransactionProcessResponse:
         timestamp = payload.timestamp or datetime.utcnow()
         amount = to_decimal(payload.amount)
+        print(f"[TX] Processing: {payload.merchant}, RM{amount}, User={payload.user_id}")
 
         insert_payload = {
             "userid": payload.user_id,
@@ -114,19 +115,23 @@ class TransactionService:
         }
         inserted = self.client.table(TABLES["transactions"]).insert(insert_payload).execute()
         if not inserted.data:
+            print("[TX] Failed to insert into Supabase")
             raise RuntimeError("Failed to create transaction")
         transaction_row = inserted.data[0]
+        print(f"[TX] Created ID: {transaction_row['id']} at {transaction_row['timestamp']}")
 
         start, end = week_bounds(timestamp)
+        print(f"[TX] Aggregating week bounds: {start.isoformat()} to {end.isoformat()}")
         tx_result = (
             self.client.table(TABLES["transactions"])
-            .select("amount, category, merchant, timestamp")
+            .select("amount, category, merchant, timestamp, status")
             .eq("userid", payload.user_id)
             .gte("timestamp", start.isoformat())
-            .lt("timestamp", end.isoformat())
+            .lte("timestamp", end.isoformat())
             .execute()
         )
         weekly_rows = tx_result.data or []
+        print(f"[TX] Found {len(weekly_rows)} transactions for aggregation")
 
         merchant_rows = [
             row
@@ -154,17 +159,29 @@ class TransactionService:
             )
         )
 
-        weekly_total = sum(to_decimal(row.get("amount")) for row in weekly_rows)
-        category_totals = self._category_totals(weekly_rows)
+        # Filter for spend total (Exclude SALARY, include only POSTED)
+        spend_rows = [
+            row for row in weekly_rows 
+            if str(row.get("category") or "").upper() != "SALARY"
+            and str(row.get("status") or "POSTED").upper() == "POSTED"
+        ]
+
+        weekly_total = sum(to_decimal(row.get("amount")) for row in spend_rows)
+        category_totals = self._category_totals(spend_rows)
 
         budget_progress, threshold_events = self.budget_service.get_budget_progress(
             user_id=payload.user_id,
             weekly_total=weekly_total,
             category_totals=category_totals,
         )
-        weekly_budget_limit = sum(
-            (to_decimal(b.weekly_limit) for b in budget_progress), Decimal("0")
-        )
+        
+        # Priority: use the overall budget limit if it exists
+        overall_budget = next((item for item in budget_progress if item.category is None), None)
+        if overall_budget:
+            weekly_budget_limit = to_decimal(overall_budget.weekly_limit)
+        else:
+            weekly_budget_limit = sum((to_decimal(item.weekly_limit) for item in budget_progress), Decimal("0"))
+            
         weekly_pct = safe_percent_decimal(weekly_total, weekly_budget_limit)
         category_key = (
             payload.category.value if payload.category else classification.primary.value
@@ -190,6 +207,9 @@ class TransactionService:
             )
         )
 
+        cat_upper = (payload.category.value if payload.category else classification.primary.value).upper()
+        is_savings = cat_upper == "SAVINGS"
+
         alerts_this_week = self.alert_service.fetch_recent_alerts(payload.user_id, limit=50)
         mascot = determine_mascot_state(
             MascotInput(
@@ -198,6 +218,7 @@ class TransactionService:
                 upcoming_bill_due_soon=any(1 <= b.days_remaining <= 3 for b in upcoming_bills),
                 weekly_alert_count=len(alerts_this_week),
                 risk_score=risk.score,
+                is_savings_context=is_savings,
             )
         )
 
@@ -220,6 +241,8 @@ class TransactionService:
             alert = self.alert_service.create_alert(payload.user_id, event.message, severity)
             if alert:
                 created_alerts.append(alert)
+                # Emit to WebSocket/External
+                await self.notification_service.emit_alert(payload.user_id, alert)
 
         if nudge and nudge.severity in {
             AlertSeverity.ALERT,
@@ -231,6 +254,8 @@ class TransactionService:
             )
             if alert:
                 created_alerts.append(alert)
+                # Emit to WebSocket/External
+                await self.notification_service.emit_alert(payload.user_id, alert)
 
         update_payload = {
             "category": (

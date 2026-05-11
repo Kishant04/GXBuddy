@@ -22,12 +22,15 @@ class MascotInput:
 	upcoming_bill_due_soon: bool
 	weekly_alert_count: int
 	risk_score: float
+	is_savings_context: bool = False
 
 
 def _mood_line_for_state(state: MascotState, weekly_percentage_used: float) -> str:
 	"""Return a deterministic fallback mood line for the given mascot state."""
 	if state == MascotState.CELEBRATING:
 		return "Steady la! You are building a strong money habit this week."
+	if state == MascotState.EMERGENCY:
+		return "ALAMAK! Budget hit 100%. We need to stop spending now! 🛑"
 	if state == MascotState.PANICKED:
 		return f"Aiyo, budget at {weekly_percentage_used:.0f}% already. Let us slow down first."
 	if state == MascotState.ALERT:
@@ -59,13 +62,13 @@ def determine_mascot_state(data: MascotInput) -> MascotStatus:
 	require_non_negative_number(data.weekly_alert_count, "weekly_alert_count")
 	require_non_negative_number(data.risk_score, "risk_score")
 
-	if data.weekly_percentage_used > 100 or data.risk_score >= 70:
-		state = MascotState.PANICKED
-	elif data.savings_streak_days > 7 and data.risk_score < 40:
+	if data.is_savings_context:
 		state = MascotState.CELEBRATING
-	elif data.upcoming_bill_due_soon and data.weekly_percentage_used >= 70:
-		state = MascotState.ALERT
-	elif data.risk_score >= 40 or data.weekly_alert_count >= 2:
+	elif data.weekly_percentage_used >= 100:
+		state = MascotState.EMERGENCY
+	elif data.weekly_percentage_used >= 70:
+		state = MascotState.PANICKED
+	elif data.weekly_percentage_used >= 40:
 		state = MascotState.ALERT
 	else:
 		state = MascotState.CALM

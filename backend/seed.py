@@ -1,207 +1,237 @@
-#!/usr/bin/env python3
-"""
-Seed the Supabase database with demo data for the test user.
-
-Run from the backend/ directory:
-    python seed.py
-
-Or pass a different user ID:
-    python seed.py <user_uuid>
-"""
-from __future__ import annotations
-
-import calendar
-import sys
-import uuid
-from datetime import datetime, timedelta
-
-from dotenv import load_dotenv
-
-load_dotenv()
-
 import os
+import uuid
+import calendar
+from datetime import datetime, timedelta
 from supabase import create_client
-
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-
-DEFAULT_USER_ID = "464f572b-0abc-4317-a36c-4739a0a375ec"
-
 
 def _uid() -> str:
     return str(uuid.uuid4())
 
+def seed(user_id: str) -> dict:
+    url = os.getenv("SUPABASE_URL")
+    key = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("SUPABASE_KEY")
 
-def seed(user_id: str) -> None:
-    if not SUPABASE_URL or not SUPABASE_KEY:
-        print("[ERROR] SUPABASE_URL and SUPABASE_KEY must be set in .env")
-        sys.exit(1)
+    if not url or not key:
+        raise RuntimeError("SUPABASE_URL and SUPABASE_KEY must be set in .env")
 
-    db = create_client(SUPABASE_URL, SUPABASE_KEY)
+    db = create_client(url, key)
     now = datetime.utcnow()
+    
+    # Rolling week for dashboard compatibility
+    start_of_week = now - timedelta(days=7)
+    # End in the future so the budget remains active
+    end_of_week = now + timedelta(days=7)
 
     print(f"Seeding data for user: {user_id}")
 
-    # ── Ensure User record exists first (FK required by Pocket, etc.) ─────────
-    # Real User table columns: id, name, email, monthlyincome, salarythreshold, incometype, createdat
+    # 1. Ensure User record exists
+    # Clear other demo users first to prevent email unique constraint issues
+    try:
+        db.table("User").delete().ilike("email", "%@demo.com").execute()
+        db.table("User").delete().ilike("email", "demo@gxbuddy.com").execute()
+    except Exception as e:
+        print(f"  [WARN] Failed to clear demo users: {e}")
+
     user_payload = {
         "id": user_id,
-        "name": "Test User",
-        "email": "test@gxbuddy.com",
+        "name": "Demo User",
+        "email": "demo@gxbuddy.com",
         "monthlyincome": 1200.0,
         "salarythreshold": 800.0,
         "incometype": "SALARY",
     }
+    
     try:
-        existing = db.table("User").select("id").eq("id", user_id).limit(1).execute()
-        if existing.data:
-            db.table("User").update({k: v for k, v in user_payload.items() if k != "id"}).eq("id", user_id).execute()
-            print("  [OK] Updated user profile")
-        else:
-            db.table("User").insert(user_payload).execute()
-            print("  [OK] Created user profile")
+        db.table("User").upsert(user_payload).execute()
+        print("  [OK] User profile upserted")
     except Exception as e:
         print(f"  [ERROR] User profile failed: {e}")
-        print("  Cannot proceed without User record (FK constraint).")
-        return
+        raise
 
-    # ── Clear existing demo data ──────────────────────────────────────────────
-    for table in ["Pocket", "Budget", "Transaction", "Streak", "BillReminder", "Alert"]:
+    # 2. Clear existing demo data
+    tables_to_clear = ["Pocket", "Budget", "Transaction", "Streak", "BillReminder", "Alert", "SquadMember"]
+    for table in tables_to_clear:
         try:
             db.table(table).delete().eq("userid", user_id).execute()
-            print(f"  [OK] Cleared {table}")
         except Exception as e:
-            print(f"  [WARN] Could not clear {table}: {e}")
+            print(f"  [WARN] Failed to clear {table}: {e}")
 
-    # ── Pockets ───────────────────────────────────────────────────────────────
-    pockets = [
+    # 3. Seed Budgets
+    budgets = [
         {
-            "id": _uid(), "userid": user_id,
-            "name": "Emergency Fund", "balance": 240.00, "target": 580.00,
-            "splitrule": {"type": "percent", "value": 20.0},
+            "id": _uid(), "userid": user_id, "scope": "overall", "category": None,
+            "weeklylimit": 400.0, "periodstart": start_of_week.isoformat(), "periodend": end_of_week.isoformat()
         },
         {
-            "id": _uid(), "userid": user_id,
-            "name": "PTPTN", "balance": 120.00, "target": 500.00,
-            "splitrule": {"type": "percent", "value": 10.0},
+            "id": _uid(), "userid": user_id, "scope": "category", "category": "FOOD",
+            "weeklylimit": 150.0, "periodstart": start_of_week.isoformat(), "periodend": end_of_week.isoformat()
         },
         {
-            "id": _uid(), "userid": user_id,
-            "name": "Travel Fund", "balance": 90.00, "target": 300.00,
-            "splitrule": {"type": "percent", "value": 5.0},
+            "id": _uid(), "userid": user_id, "scope": "category", "category": "TRANSPORT",
+            "weeklylimit": 100.0, "periodstart": start_of_week.isoformat(), "periodend": end_of_week.isoformat()
+        },
+        {
+            "id": _uid(), "userid": user_id, "scope": "category", "category": "SHOPPING",
+            "weeklylimit": 150.0, "periodstart": start_of_week.isoformat(), "periodend": end_of_week.isoformat()
         },
     ]
-    try:
-        db.table("Pocket").insert(pockets).execute()
-        print(f"  [OK] Inserted {len(pockets)} pockets")
-    except Exception as e:
-        print(f"  [WARN] Pocket insert failed: {e}")
+    db.table("Budget").insert(budgets).execute()
+    print("  [OK] Budgets seeded")
 
-    # ── Budget ────────────────────────────────────────────────────────────────
-    # Monthly budget for the current month (scope enum requires "MONTHLY")
-    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    last_day = calendar.monthrange(now.year, now.month)[1]
-    month_end = now.replace(day=last_day, hour=23, minute=59, second=59, microsecond=0)
-
-    try:
-        db.table("Budget").insert({
-            "id": _uid(), "userid": user_id,
-            "scope": "MONTHLY", "category": None,
-            "weeklylimit": "400.00",
-            "periodstart": month_start.isoformat(),
-            "periodend": month_end.isoformat(),
-            "alert60": False, "alert80": False, "alert100": False,
-        }).execute()
-        print("  [OK] Inserted budget")
-    except Exception as e:
-        print(f"  [WARN] Budget insert failed: {e}")
-
-    # ── Transactions ──────────────────────────────────────────────────────────
+    # 4. Seed Transactions
     transactions = [
+        {"merchant": "GrabFood", "amount": 32.00, "category": "FOOD", "timestamp": (now - timedelta(hours=2)).isoformat()},
+        {"merchant": "Touch n Go", "amount": 15.00, "category": "TRANSPORT", "timestamp": (now - timedelta(hours=5)).isoformat()},
+        {"merchant": "Shopee", "amount": 89.00, "category": "SHOPPING", "timestamp": (now - timedelta(days=1)).isoformat()},
+        {"merchant": "Spotify", "amount": 14.90, "category": "LIFESTYLE", "timestamp": (now - timedelta(days=2)).isoformat()},
+        {"merchant": "GrabFood", "amount": 28.50, "category": "FOOD", "timestamp": (now - timedelta(days=3)).isoformat()},
+    ]
+    txn_payload = []
+    for t in transactions:
+        txn_payload.append({
+            "id": _uid(),
+            "userid": user_id,
+            "merchant": t["merchant"],
+            "amount": str(t["amount"]),
+            "category": t["category"],
+            "source": "BANK",
+            "status": "POSTED",
+            "timestamp": t["timestamp"]
+        })
+    db.table("Transaction").insert(txn_payload).execute()
+    print("  [OK] Transactions seeded")
+
+    # 5. Seed Pockets
+    pockets = [
+        {"name": "Emergency Fund", "balance": 240.0, "target": 580.0, "rule_type": "percent", "rule_value": 20.0},
+        {"name": "PTPTN", "balance": 120.0, "target": 500.0, "rule_type": "percent", "rule_value": 10.0},
+        {"name": "Travel", "balance": 90.0, "target": 300.0, "rule_type": "percent", "rule_value": 5.0},
+    ]
+    pocket_payload = []
+    for p in pockets:
+        pocket_payload.append({
+            "id": _uid(),
+            "userid": user_id,
+            "name": p["name"],
+            "balance": p["balance"],
+            "target": p["target"],
+            "splitrule": {"type": p["rule_type"], "value": p["rule_value"]}
+        })
+    db.table("Pocket").insert(pocket_payload).execute()
+    print("  [OK] Pockets seeded")
+
+    # 6. Seed Bill Reminder
+    bill = {
+        "id": _uid(),
+        "userid": user_id,
+        "name": "Phone bill",
+        "amount": 68.0,
+        "duedate": (now + timedelta(days=2)).isoformat(),
+        "ispaid": False
+    }
+    db.table("BillReminder").insert(bill).execute()
+    print("  [OK] Bill reminder seeded")
+
+    # 7. Seed Alerts
+    alerts = [
         {
-            "id": _uid(), "userid": user_id,
-            "merchant": "GrabFood", "amount": "32.00", "category": "FOOD",
-            "source": "BANK", "status": "POSTED", "isbnpl": False,
-            "timestamp": (now - timedelta(hours=3)).isoformat(),
-            "riskscore": 42.0,
+            "id": _uid(), "userid": user_id, "severity": "alert", "actiontaken": False,
+            "message": "Third GrabFood order this week. Want to round up RM2 into Emergency Fund?",
+            "createdat": now.isoformat()
         },
         {
-            "id": _uid(), "userid": user_id,
-            "merchant": "Touch n Go", "amount": "15.00", "category": "TRANSPORT",
-            "source": "BANK", "status": "POSTED", "isbnpl": False,
-            "timestamp": (now - timedelta(days=1, hours=2)).isoformat(),
-            "riskscore": 12.0,
-        },
-        {
-            "id": _uid(), "userid": user_id,
-            "merchant": "Shopee", "amount": "89.00", "category": "SHOPPING",
-            "source": "BANK", "status": "POSTED", "isbnpl": False,
-            "timestamp": (now - timedelta(days=2, hours=1)).isoformat(),
-            "riskscore": 68.0,
-        },
-        {
-            "id": _uid(), "userid": user_id,
-            "merchant": "Spotify", "amount": "14.90", "category": "ENTERTAINMENT",
-            "source": "BANK", "status": "POSTED", "isbnpl": False,
-            "timestamp": (now - timedelta(days=3, hours=6)).isoformat(),
-            "riskscore": 8.0,
-        },
-        {
-            "id": _uid(), "userid": user_id,
-            "merchant": "Salary Credit", "amount": "1200.00", "category": "OTHER",
-            "source": "BANK", "status": "POSTED", "isbnpl": False,
-            "timestamp": (now - timedelta(days=5)).isoformat(),
-            "riskscore": 0.0,
-        },
-        {
-            "id": _uid(), "userid": user_id,
-            "merchant": "GrabFood", "amount": "28.50", "category": "FOOD",
-            "source": "BANK", "status": "POSTED", "isbnpl": False,
-            "timestamp": (now - timedelta(days=1, hours=8)).isoformat(),
-            "riskscore": 38.0,
+            "id": _uid(), "userid": user_id, "severity": "alert", "actiontaken": False,
+            "message": "Phone bill RM68 due in 2 days.",
+            "createdat": (now - timedelta(minutes=5)).isoformat()
         },
     ]
-    try:
-        db.table("Transaction").insert(transactions).execute()
-        print(f"  [OK] Inserted {len(transactions)} transactions")
-    except Exception as e:
-        print(f"  [WARN] Transaction insert failed: {e}")
+    db.table("Alert").insert(alerts).execute()
+    print("  [OK] Alerts seeded")
 
-    # ── Streak ────────────────────────────────────────────────────────────────
-    try:
-        db.table("Streak").insert({
-            "id": _uid(), "userid": user_id,
-            "currentstreak": 8, "beststreak": 12,
-            "lastsavedate": (now - timedelta(days=1)).isoformat(),
+    # 8. Seed Streak
+    streak = {
+        "id": _uid(),
+        "userid": user_id,
+        "currentstreak": 8,
+        "beststreak": 8,
+        "lastsavedate": now.isoformat()
+    }
+    db.table("Streak").insert(streak).execute()
+    print("  [OK] Streak seeded")
+
+    # 9. Seed Squad
+    squad_name = "Broke No More Squad"
+    invite_code = "GXDEMO25"
+    
+    # Check if squad exists
+    existing_squad = db.table("Squad").select("id").eq("invitecode", invite_code).execute()
+    
+    if existing_squad.data:
+        squad_id = existing_squad.data[0]["id"]
+        db.table("Squad").update({
+            "name": squad_name,
+            "goalname": "Save RM500 in 30 days",
+            "goalamount": 500.0,
+            "deadline": (now + timedelta(days=30)).isoformat(),
+            "privacymode": "ANONYMOUS",
+            "isactive": True
+        }).eq("id", squad_id).execute()
+        # Full clear of members for this squad to reset indices
+        db.table("SquadMember").delete().eq("squadid", squad_id).execute()
+    else:
+        squad_id = _uid()
+        db.table("Squad").insert({
+            "id": squad_id,
+            "name": squad_name,
+            "goalname": "Save RM500 in 30 days",
+            "goalamount": 500.0,
+            "deadline": (now + timedelta(days=30)).isoformat(),
+            "createdby": user_id,
+            "invitecode": invite_code,
+            "privacymode": "ANONYMOUS",
+            "isactive": True
         }).execute()
-        print("  [OK] Inserted streak")
-    except Exception as e:
-        print(f"  [WARN] Streak insert failed: {e}")
 
-    # ── Bill Reminders ────────────────────────────────────────────────────────
-    bills = [
-        {
-            "id": _uid(), "userid": user_id,
-            "name": "Phone bill", "amount": "68.00",
-            "duedate": (now + timedelta(days=5)).isoformat(),
-            "ispaid": False,
-        },
-        {
-            "id": _uid(), "userid": user_id,
-            "name": "Netflix", "amount": "17.00",
-            "duedate": (now + timedelta(days=10)).isoformat(),
-            "ispaid": False,
-        },
+    # Add members in specific order to guarantee indices (1: User, 2: Mei, 3: Kumar, 4: Sarah)
+    # 1. Main User
+    db.table("SquadMember").insert({
+        "id": _uid(), "squadid": squad_id, "userid": user_id,
+        "progressscore": 72.0, "streakdays": 8, "goalstatus": "active"
+    }).execute()
+
+    # 2. Demo Users
+    demo_members = [
+        {"id": "8de804da-71d0-4527-85a3-7b5199009ac6", "name": "Mei", "progress": 65.0, "streak": 6, "email": "mei@demo.com"},
+        {"id": "7c9e66d4-1a2b-4c3d-8e5f-6a7b8c9d0e1f", "name": "Kumar", "progress": 51.0, "streak": 5, "email": "kumar@demo.com"},
+        {"id": "5b4d3c2a-1f0e-9d8c-7b6a-543210fedcba", "name": "Sarah", "progress": 68.0, "streak": 7, "email": "sarah@demo.com"},
     ]
-    try:
-        db.table("BillReminder").insert(bills).execute()
-        print(f"  [OK] Inserted {len(bills)} bill reminders")
-    except Exception as e:
-        print(f"  [WARN] BillReminder insert failed: {e}")
+    
+    for m in demo_members:
+        member_user_id = m["id"]
+        # Create/Update demo user profile
+        db.table("User").upsert({
+            "id": member_user_id, "name": m["name"], "email": m["email"],
+            "monthlyincome": 1000.0, "salarythreshold": 500.0, "incometype": "SALARY"
+        }).execute()
+        # Add to squad
+        db.table("SquadMember").insert({
+            "id": _uid(), "squadid": squad_id, "userid": member_user_id,
+            "progressscore": m["progress"], "streakdays": m["streak"], "goalstatus": "active"
+        }).execute()
 
-    print(f"\n[DONE] Seed complete for {user_id}")
+    print(f"  [OK] Squad seeded")
 
+    return {
+        "budgets_seeded": len(budgets),
+        "transactions_seeded": len(transactions),
+        "pockets_seeded": len(pockets),
+        "alerts_seeded": len(alerts),
+        "squad_members_seeded": len(demo_members) + 1
+    }
 
 if __name__ == "__main__":
-    target_user = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_USER_ID
-    seed(target_user)
+    import sys
+    from dotenv import load_dotenv
+    load_dotenv()
+    target = sys.argv[1] if len(sys.argv) > 1 else "464f572b-0abc-4317-a36c-4739a0a375ec"
+    seed(target)

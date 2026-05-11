@@ -37,6 +37,9 @@ def detect_salary(user_id: str, amount: float) -> bool:
     return amount >= 800  # safe default
 
 
+from app.ai.mascot_engine import MascotInput, determine_mascot_state
+from app.schemas.contracts import MascotStatus
+
 def execute_split(user_id: str, salary_amount: float) -> dict:
     """
     1. Load pockets with split rules
@@ -98,11 +101,23 @@ def execute_split(user_id: str, salary_amount: float) -> dict:
         "expires_at": expires_at,
     }
 
+    mascot = determine_mascot_state(
+        MascotInput(
+            weekly_percentage_used=0.0,  # context specific
+            savings_streak_days=0,
+            upcoming_bill_due_soon=False,
+            weekly_alert_count=0,
+            risk_score=0.0,
+            is_savings_context=True,
+        )
+    )
+
     return {
         "split_id": split_id,
         "total_routed": round(total_routed, 2),
         "lines": lines,
         "undo_deadline": expires_at.isoformat(),
+        "mascot": mascot.model_dump(mode="json"),
     }
 
 

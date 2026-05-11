@@ -38,15 +38,9 @@ def safe_percent_decimal(numerator: Decimal, denominator: Decimal) -> float:
 
 def week_bounds(reference: datetime | None = None) -> tuple[datetime, datetime]:
     now = reference or datetime.utcnow()
-    start = now - timedelta(
-        days=now.weekday(),
-        hours=now.hour,
-        minutes=now.minute,
-        seconds=now.second,
-        microseconds=now.microsecond,
-    )
-    end = start + timedelta(days=7)
-    return start, end
+    # Use a rolling 7-day window ending at the current moment
+    start = now - timedelta(days=7)
+    return start, now
 
 
 def is_late_night(ts: datetime) -> bool:

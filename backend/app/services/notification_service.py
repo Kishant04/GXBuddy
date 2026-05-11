@@ -44,7 +44,33 @@ class NotificationService:
         )
 
     async def emit_alert(self, user_id: str, alert: AlertItem) -> None:
+        # 1. Send WebSocket event
         await self.emit_event(self.build_alert_event(user_id=user_id, alert=alert))
+        
+        # 2. Check user preferences and send external notifications
+        from app.routers.profile import _build_profile
+        profile = _build_profile(user_id)
+        
+        if profile.whatsapp_enabled:
+            await self.send_whatsapp(user_id, alert.message)
+            
+        if profile.telegram_enabled:
+            await self.send_telegram(user_id, alert.message)
+
+    async def send_whatsapp(self, user_id: str, message: str) -> None:
+        """Mock WhatsApp sender."""
+        print(f"[WHATSAPP] Sending to {user_id}: {message}")
+        # In production, use Twilio or similar:
+        # client = Client(settings.TWILIO_SID, settings.TWILIO_TOKEN)
+        # client.messages.create(body=message, from_='whatsapp:+14155238886', to=f'whatsapp:{user_phone}')
+
+    async def send_telegram(self, user_id: str, message: str) -> None:
+        """Mock Telegram sender."""
+        print(f"[TELEGRAM] Sending to {user_id}: {message}")
+        # In production, use Telegram Bot API:
+        # async with httpx.AsyncClient() as client:
+        #     await client.post(f"https://api.telegram.org/bot{token}/sendMessage", 
+        #                      json={"chat_id": user_chat_id, "text": message})
 
     async def emit_mascot_state(self, user_id: str, mascot: MascotStatus) -> None:
         await self.emit_event(self.build_mascot_state_event(user_id=user_id, mascot=mascot))

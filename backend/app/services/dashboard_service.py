@@ -37,20 +37,34 @@ class DashboardService:
             .select("*")
             .eq("userid", user_id)
             .gte("timestamp", start.isoformat())
-            .lt("timestamp", end.isoformat())
+            .lte("timestamp", end.isoformat())
             .order("timestamp", desc=True)
             .execute()
         )
         tx_rows = tx_result.data or []
 
-        weekly_total = sum((to_decimal(row.get("amount")) for row in tx_rows), Decimal("0"))
+        # Filter out income (SALARY) for weekly spend total and only count POSTED transactions
+        spend_rows = [
+            row for row in tx_rows 
+            if str(row.get("category") or "").upper() != "SALARY"
+            and str(row.get("status") or "POSTED").upper() == "POSTED"
+        ]
+
+        weekly_total = sum((to_decimal(row.get("amount")) for row in spend_rows), Decimal("0"))
         category_totals: dict[str, Decimal] = {}
-        for row in tx_rows:
+        for row in spend_rows:
             key = str(row.get("category") or "uncategorized").lower()
             category_totals[key] = category_totals.get(key, Decimal("0")) + to_decimal(row.get("amount"))
 
         budget_progress, _ = self.budget_service.get_budget_progress(user_id, weekly_total, category_totals)
-        weekly_budget_limit = sum((to_decimal(item.weekly_limit) for item in budget_progress), Decimal("0"))
+        
+        # Priority: use the overall budget limit if it exists, otherwise sum specific category budgets.
+        overall_budget = next((item for item in budget_progress if item.category is None), None)
+        if overall_budget:
+            weekly_budget_limit = to_decimal(overall_budget.weekly_limit)
+        else:
+            weekly_budget_limit = sum((to_decimal(item.weekly_limit) for item in budget_progress), Decimal("0"))
+        
         weekly_budget_used_percent = round(safe_percent_decimal(weekly_total, weekly_budget_limit), 2)
 
         alerts = self.alert_service.fetch_recent_alerts(user_id=user_id, limit=10)

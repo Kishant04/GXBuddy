@@ -18,6 +18,8 @@ def _gen_invite_code(length: int = 8) -> str:
 def _anonymise(members: list, current_user_id: str) -> list[dict]:
     return [
         {
+            "user_id": m.get("userid"),
+            "display_name": m.get("display_name") or m.get("name") or f"Member {i+1}",
             "member_index": i + 1,
             "progress_score": m.get("progressscore", 0),
             "streak_days": m.get("streakdays", 0),
@@ -32,6 +34,7 @@ def _anonymise(members: list, current_user_id: str) -> list[dict]:
 # CREATE SQUAD
 # -----------------------------
 async def create_squad(db, user_id: str, data):
+    print(f"[SQUAD] Creating squad for user {user_id}")
     squad_payload = {
         "name": data.name,
         "goalname": data.goal_name,
@@ -39,27 +42,34 @@ async def create_squad(db, user_id: str, data):
         "deadline": str(data.deadline),
         "createdby": user_id,
         "invitecode": _gen_invite_code(),
-        "privacymode": data.privacy_mode,
+        "privacymode": data.privacy_mode.value if hasattr(data.privacy_mode, 'value') else data.privacy_mode,
         "isactive": True,
     }
 
-    squad_res = db.table("Squad").insert(squad_payload).execute()
-    if not squad_res.data:
-        raise Exception("Failed to create squad")
+    try:
+        squad_res = db.table("Squad").insert(squad_payload).execute()
+        if not squad_res.data:
+            print("[SQUAD] Failed to insert squad: no data returned")
+            raise Exception("Failed to create squad")
 
-    squad = squad_res.data[0]
+        squad = squad_res.data[0]
+        print(f"[SQUAD] Created squad {squad['id']} with code {squad['invitecode']}")
 
-    db.table("SquadMember").insert(
-        {
-            "squadid": squad["id"],
-            "userid": user_id,
-            "progressscore": 0,
-            "streakdays": 0,
-            "goalstatus": "active",
-        }
-    ).execute()
+        db.table("SquadMember").insert(
+            {
+                "squadid": squad["id"],
+                "userid": user_id,
+                "progressscore": 0,
+                "streakdays": 0,
+                "goalstatus": "active",
+            }
+        ).execute()
+        print(f"[SQUAD] Added user {user_id} as squad member")
 
-    return squad
+        return squad
+    except Exception as e:
+        print(f"[SQUAD] Error in create_squad: {e}")
+        raise
 
 
 # -----------------------------
@@ -110,11 +120,14 @@ async def join_squad(db, user_id: str, invite_code: str):
     return squad
 
 
+from app.core.database import TABLES, get_supabase_client
+
+
 # -----------------------------
 # GET SQUAD VIEW
 # -----------------------------
 async def get_squad_view(db, squad_id: str, current_user_id: str):
-    squad_res = db.table("Squad").select("*").eq("id", squad_id).single().execute()
+    squad_res = db.table(TABLES["squads"]).select("*").eq("id", squad_id).single().execute()
 
     if not squad_res.data:
         raise ValueError("Squad not found")
@@ -122,9 +135,15 @@ async def get_squad_view(db, squad_id: str, current_user_id: str):
     squad = squad_res.data
 
     members_res = (
-        db.table("SquadMember").select("*").eq("squadid", squad_id).execute()
+        db.table(TABLES["squad_members"])
+        .select("*, user:userid(name)")
+        .eq("squadid", squad_id)
+        .execute()
     )
-    members = members_res.data or []
+    members = []
+    for m in (members_res.data or []):
+        m["display_name"] = m.get("user", {}).get("name") if m.get("user") else None
+        members.append(m)
 
     days_remaining = max(
         0,
@@ -138,9 +157,9 @@ async def get_squad_view(db, squad_id: str, current_user_id: str):
         members_data=[
             {
                 "index": m["member_index"],
-                "progress": m["progress_score"],   # fixed key
-                "streak": m["streak_days"],          # fixed key
-                "goal_status": m["goal_status"],     # fixed key
+                "progress": m["progress_score"],
+                "streak": m["streak_days"],
+                "goal_status": m["goal_status"],
             }
             for m in anon_members
         ],
@@ -155,17 +174,13 @@ async def get_squad_view(db, squad_id: str, current_user_id: str):
 
     return {
         "squad_id": squad["id"],
-        "squadid": squad["id"],          # keep alias for old clients
         "name": squad["name"],
         "goal_name": squad["goalname"],
         "goal_amount": float(squad.get("goalamount") or 0),
         "deadline": squad["deadline"],
         "invite_code": squad["invitecode"],
-        "privacy_mode": squad.get("privacymode", "ANONYMOUS"),
-        "progress": avg_progress,
         "members": anon_members,
-        "insight": ai_insight,
-        "ai_insight": ai_insight,        # keep alias
+        "ai_insight": ai_insight,
     }
 
 
@@ -174,7 +189,7 @@ async def get_squad_view(db, squad_id: str, current_user_id: str):
 # -----------------------------
 async def send_rally(db, squad_id: str, sender_user_id: str, target_member_index: int):
     members_res = (
-        db.table("SquadMember").select("*").eq("squadid", squad_id).execute()
+        db.table(TABLES["squad_members"]).select("*").eq("squadid", squad_id).execute()
     )
     members = members_res.data or []
 
@@ -208,7 +223,7 @@ async def send_rally(db, squad_id: str, sender_user_id: str, target_member_index
 # -----------------------------
 async def check_streak_shield(db, user_id: str, squad_id: str):
     member_res = (
-        db.table("SquadMember")
+        db.table(TABLES["squad_members"])
         .select("*")
         .eq("squadid", squad_id)
         .eq("userid", user_id)
@@ -219,15 +234,15 @@ async def check_streak_shield(db, user_id: str, squad_id: str):
         return
 
     streak_res = (
-        db.table("streaks").select("*").eq("userid", user_id).execute()
+        db.table(TABLES["streaks"]).select("*").eq("userid", user_id).execute()
     )
     streak = streak_res.data[0] if streak_res.data else None
 
-    if not streak or streak.get("current_streak", 0) < 1:
+    if not streak or streak.get("currentstreak", streak.get("current_streak", 0)) < 1:
         return
 
     members_res = (
-        db.table("SquadMember").select("*").eq("squadid", squad_id).execute()
+        db.table(TABLES["squad_members"]).select("*").eq("squadid", squad_id).execute()
     )
     members = members_res.data or []
 
@@ -257,19 +272,19 @@ async def check_streak_shield(db, user_id: str, squad_id: str):
 # -----------------------------
 async def update_progress_score(db, user_id: str):
     memberships_res = (
-        db.table("SquadMember").select("*").eq("userid", user_id).execute()
+        db.table(TABLES["squad_members"]).select("*").eq("userid", user_id).execute()
     )
     memberships = memberships_res.data or []
 
     streak_res = (
-        db.table("streaks").select("*").eq("userid", user_id).execute()
+        db.table(TABLES["streaks"]).select("*").eq("userid", user_id).execute()
     )
     streak = streak_res.data[0] if streak_res.data else None
-    streak_days = streak.get("current_streak", 0) if streak else 0
+    streak_days = streak.get("currentstreak", streak.get("current_streak", 0)) if streak else 0
 
     streak_score = min(streak_days / 30 * 100, 100) * 0.4
 
     for m in memberships:
-        db.table("SquadMember").update(
+        db.table(TABLES["squad_members"]).update(
             {"progressscore": round(streak_score, 1), "streakdays": streak_days}
         ).eq("id", m["id"]).execute()

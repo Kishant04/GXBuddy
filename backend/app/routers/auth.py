@@ -27,15 +27,26 @@ def verify_token(token: str) -> dict:
     try:
         user_response = supabase.auth.get_user(token)
         if not user_response or not user_response.user:
-            raise HTTPException(status_code=401, detail="Invalid token")
+            raise HTTPException(
+                status_code=401,
+                detail="Token invalid. Check that the raw access_token was pasted, not the anon key or masked token.",
+            )
         return {
             "id": user_response.user.id,
             "email": user_response.user.email,
         }
     except HTTPException:
         raise
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    except Exception as e:
+        error_msg = str(e).lower()
+        if "expired" in error_msg:
+            raise HTTPException(
+                status_code=401, detail="Token expired. Generate a new access token."
+            )
+        raise HTTPException(
+            status_code=401,
+            detail="Token invalid. Check that the raw access_token was pasted, not the anon key or masked token.",
+        )
 
 
 # -----------------------------------
@@ -78,18 +89,21 @@ class LoginRequest(BaseModel):
 
 @router.post("/login")
 async def login(body: LoginRequest):
+    print(f"[AUTH] Login attempt for email: {body.email}")
     supabase = get_supabase_client()
     try:
         res = supabase.auth.sign_in_with_password(
             {"email": body.email, "password": body.password}
         )
+        print(f"[AUTH] Login successful for user: {res.user.id}")
         return {
             "access_token": res.session.access_token,
             "user_id": res.user.id,
             "email": res.user.email,
         }
     except Exception as e:
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+        print(f"[AUTH] Login failed for {body.email}: {e}")
+        raise HTTPException(status_code=401, detail=f"Invalid email or password: {str(e)}")
 
 
 # -----------------------------------

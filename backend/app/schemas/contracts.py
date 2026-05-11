@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel
 
@@ -52,6 +52,11 @@ TransactionProcessResponse = TransactionResponse
 RiskResultSchema = RiskResult
 
 
+class AutopilotConfig(BaseModel):
+    salary_threshold: float
+    income_type: str  # "monthly" | "gig"
+
+
 class SplitLineItem(BaseModel):
     pocket_id: str
     pocket_name: str
@@ -62,6 +67,7 @@ class SplitLineItem(BaseModel):
 
 class AutopilotTriggerRequest(BaseModel):
     transaction_id: str  # the salary transaction that fired this
+    user_id: Optional[str] = None
 
 
 class AutopilotTriggerResponse(BaseModel):
@@ -69,10 +75,12 @@ class AutopilotTriggerResponse(BaseModel):
     total_routed: float
     lines: List[SplitLineItem]
     undo_deadline: str  # ISO timestamp — 60s from now
+    mascot: Optional[MascotResponse] = None
 
 
 class AutopilotUndoRequest(BaseModel):
     split_id: str
+    user_id: Optional[str] = None
 
 
 class AutopilotUndoResponse(BaseModel):

@@ -12,10 +12,13 @@ class MascotState(str, Enum):
     CALM = "calm"
     ALERT = "alert"
     PANICKED = "panicked"
+    EMERGENCY = "emergency"
     CELEBRATING = "celebrating"
 
 
 class AlertSeverity(str, Enum):
+    INFO = "info"
+    WARNING = "warning"
     CALM = "calm"
     ALERT = "alert"
     PANICKED = "panicked"
@@ -28,6 +31,7 @@ class TransactionCategory(str, Enum):
     TRANSPORT = "TRANSPORT"
     SHOPPING = "SHOPPING"
     ENTERTAINMENT = "ENTERTAINMENT"
+    LIFESTYLE = "LIFESTYLE"
     BILLS = "BILLS"
     HEALTH = "HEALTH"
     EDUCATION = "EDUCATION"

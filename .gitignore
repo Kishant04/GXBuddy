@@ -1,16 +1,33 @@
-﻿# Flutter/Dart
-.dart_tool/
-.flutter-plugins
-.flutter-plugins-dependencies
-.packages
-.pub-cache/
-.pub/
-build/
+# General
+*.env
+.env.*
+.env
+*.log
+.idea/
 *.iml
 *.ipr
 *.iws
-.idea/
-*.log
+
+# Backend
+backend/.env
+backend/.env.local
+backend/venv/
+backend/venv_312/
+backend/venv_new/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/**/*.pyc
+backend/.pytest_cache/
+backend/**/.pytest_cache/
+
+# Frontend
+frontend/build/
+frontend/.dart_tool/
+frontend/.packages
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+frontend/.pub/
+frontend/.pub-cache/
 
 # Android
 **/android/local.properties
@@ -20,7 +37,7 @@ build/
 **/android/gradlew.bat
 **/android/gradle/wrapper/gradle-wrapper.jar
 **/android/key.properties
-android/app/google-services.json
+frontend/android/app/google-services.json
 
 # iOS
 **/ios/**/*.mode1v3
@@ -32,28 +49,4 @@ android/app/google-services.json
 **/ios/Flutter/Generated.xcconfig
 **/ios/Flutter/ephemeral/
 **/ios/Runner/GeneratedPluginRegistrant.*
-
-# macOS
-**/macos/Flutter/GeneratedPluginRegistrant.swift
-**/macos/Flutter/ephemeral/
-
-# Windows
-**/windows/flutter/generated_plugin_registrant.cc
-**/windows/flutter/generated_plugin_registrant.h
-**/windows/flutter/generated_plugins.cmake
-
-# Secrets
-*.env
-.env.*
-.env
-google-services.json
-GoogleService-Info.plist
-
-# Backend
-backend/.env
-backend/venv/
-backend/__pycache__/
-backend/**/__pycache__/
-backend/**/*.pyc
-backend/.pytest_cache/
-backend/**/.pytest_cache/
+build/
